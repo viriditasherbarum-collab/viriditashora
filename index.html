@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Viriditas Hora">
+<meta name="theme-color" content="#080614">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Viriditas Hora</title>
+<script defer src="/_vercel/insights/script.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;}
+html,body{height:100%;height:-webkit-fill-available;}
+body{font-family:'Palatino Linotype',Palatino,Georgia,serif;background:#080614;color:#e8e0d0;min-height:100vh;overflow-x:hidden;}
+@keyframes twinkle{0%,100%{opacity:.06}50%{opacity:.6}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-100%)}}
+.star{position:fixed;border-radius:50%;pointer-events:none;animation:twinkle var(--d) ease-in-out infinite;animation-delay:var(--delay);}
+.fade-in{animation:fadeIn 0.4s ease forwards;}
+.planet-pulse{animation:pulse 3.5s ease-in-out infinite;}
+.float{animation:float 4s ease-in-out infinite;}
+.card{background:rgba(255,255,255,0.034);border:1px solid rgba(255,255,255,0.09);border-radius:16px;padding:18px;margin-bottom:12px;}
+.lbl{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#C9A84C;margin-bottom:10px;display:block;}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;gap:8px;}
+.row:last-child{border-bottom:none;}
+.row-l{color:#c8bfdf;flex:1;line-height:1.4;}
+.row-r{color:#e8e0d0;text-align:right;flex-shrink:0;}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;max-width:440px;width:100%;margin:0 auto;padding:12px 13px calc(72px + env(safe-area-inset-bottom));}
+
+/* 4-tab nav */
+#nav{position:fixed;bottom:0;left:0;right:0;background:rgba(5,3,16,0.98);border-top:1px solid rgba(201,168,76,0.22);display:grid;grid-template-columns:1fr 1fr 1fr 1fr;z-index:1000;padding-bottom:env(safe-area-inset-bottom);}
+.nav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 2px;background:none;border:none;border-top:2px solid transparent;color:#252040;font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;transition:color 0.2s;min-height:52px;width:100%;}
+.nav-btn.active{color:#C9A84C;border-top-color:#C9A84C;}
+.nav-icon{font-size:17px;line-height:1;margin-bottom:2px;}
+.nav-lbl{font-size:8px;letter-spacing:.1em;text-transform:uppercase;}
+
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#2d1f6e,#1a1035);border:1px solid rgba(201,168,76,0.4);border-radius:12px;color:#C9A84C;font-size:13px;letter-spacing:.07em;cursor:pointer;font-family:inherit;text-transform:uppercase;touch-action:manipulation;-webkit-appearance:none;transition:opacity 0.15s;}
+.btn:active{opacity:0.75;}
+textarea{resize:none;font-family:inherit;width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:14px;color:#e8e0d0;font-size:15px;line-height:1.6;-webkit-appearance:none;display:block;}
+textarea:focus{outline:none;border-color:#C9A84C;}
+input{width:100%;background:#0f0d24;border:1px solid rgba(201,168,76,0.22);border-radius:10px;padding:13px 14px;color:#e8e0d0;font-size:15px;font-family:inherit;-webkit-appearance:none;display:block;margin-bottom:10px;}
+input:focus{outline:none;border-color:#C9A84C;}
+
+/* Hour rows — clear and readable */
+.hr-row{display:flex;align-items:center;padding:9px 10px;border-radius:10px;margin-bottom:5px;gap:10px;background:rgba(255,255,255,0.025);border:1px solid transparent;}
+.hr-row.cur{background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.3);}
+.hr-row.past{opacity:.5;}
+.hr-row.fut{opacity:.6;}
+.hr-n{font-size:11px;color:#6a5e8a;width:20px;flex-shrink:0;text-align:right;}
+.hr-t{font-size:12px;color:#9d8fbf;width:58px;flex-shrink:0;}
+.hr-s{font-size:15px;width:20px;flex-shrink:0;}
+.hr-p{font-size:13px;flex:1;color:#c8bfdf;}
+.hr-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(201,168,76,0.15);color:#C9A84C;flex-shrink:0;}
+
+.cs-card{border-radius:16px;padding:18px;margin-bottom:12px;}
+.cs-s{background:linear-gradient(135deg,rgba(55,18,110,0.28),rgba(28,8,65,0.28));border:1px solid rgba(138,75,200,0.3);}
+.cs-i{background:linear-gradient(135deg,rgba(48,33,4,0.3),rgba(28,18,4,0.3));border:1px solid rgba(201,168,76,0.3);}
+.feat{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;}
+.feat:last-child{border-bottom:none;}
+.feat-t{color:#c8bfdf;line-height:1.4;flex:1;}
+
+/* Notification */
+#notif{position:fixed;top:0;left:0;right:0;z-index:3000;display:none;padding-top:env(safe-area-inset-top);}
+#notif-in{max-width:440px;margin:0 auto;background:linear-gradient(135deg,#180c40,#281660);border-bottom:1px solid rgba(201,168,76,0.32);padding:12px 16px;display:flex;align-items:center;gap:12px;}
+#notif.show{display:block;animation:slideDown 0.38s ease;}
+#notif.hide{animation:slideUp 0.3s ease forwards;}
+
+/* Admin */
+#admin-bar{display:none;position:fixed;bottom:calc(52px + env(safe-area-inset-bottom));left:0;right:0;z-index:2000;background:rgba(28,14,65,0.97);border-top:1px solid rgba(138,75,200,0.28);padding:6px 12px;text-align:center;font-size:11px;color:#b085e8;}
+#admin-bar.show{display:block;}
+.wl-card{background:linear-gradient(135deg,rgba(18,10,46,0.65),rgba(8,4,22,0.65));border:1px solid rgba(201,168,76,0.2);border-radius:16px;padding:20px;margin-bottom:12px;}
+
+/* Pillar badge */
+.pillar-b{display:inline-block;font-size:10px;padding:3px 10px;border-radius:20px;margin-bottom:8px;letter-spacing:.05em;}
+</style>
+</head>
+<body>
+
+<!-- Notification -->
+<div id="notif">
+  <div id="notif-in">
+    <div id="n-sym" style="font-size:26px;flex-shrink:0;line-height:1"></div>
+    <div style="flex:1;min-width:0">
+      <div id="n-title" style="font-size:13px;color:#C9A84C;font-weight:bold;margin-bottom:2px"></div>
+      <div id="n-body" style="font-size:12px;color:#c8bfdf;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    </div>
+    <button onclick="hideNotif()" style="background:none;border:none;color:#5a4e7a;font-size:20px;cursor:pointer;flex-shrink:0;padding:0;touch-action:manipulation;line-height:1">✕</button>
+  </div>
+</div>
+
+<!-- Admin -->
+<div id="admin-bar">
+  🔒 ADMIN &nbsp;
+  <button onclick="setAdminTier('free')" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#e8e0d0;cursor:pointer;font-family:inherit;margin:0 2px">Free</button>
+  <button onclick="setAdminTier('seeker')" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(138,75,200,0.4);background:rgba(138,75,200,0.15);color:#b085e8;cursor:pointer;font-family:inherit;margin:0 2px">Seeker</button>
+  <button onclick="setAdminTier('initiate')" style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(201,168,76,0.4);background:rgba(201,168,76,0.1);color:#C9A84C;cursor:pointer;font-family:inherit;margin:0 2px">Initiate</button>
+  <button onclick="disableAdmin()" style="font-size:11px;padding:3px 8px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:none;color:#5a4e7a;cursor:pointer;font-family:inherit;margin-left:6px">✕</button>
+</div>
+
+<div id="stars"></div>
+<div id="app">
+  <div style="text-align:center;padding:8px 0 12px">
+    <div style="font-size:11px;letter-spacing:.26em;color:#C9A84C;text-transform:uppercase">Viriditas Hora</div>
+    <div style="font-size:10px;color:#3a3060;font-style:italic;margin-top:2px">The Living Power of the Hour</div>
+    <div id="clock" style="font-size:11px;color:#5a4e7a;margin-top:3px"></div>
+  </div>
+  <div id="hora-tab"></div>
+  <div id="ruling-tab" style="display:none"></div>
+  <div id="moon-tab" style="display:none"></div>
+  <div id="journal-tab" style="display:none"></div>
+</div>
+
+<nav id="nav">
+  <button class="nav-btn active" id="btn-hora" onclick="switchTab('hora')"><span class="nav-icon">⟳</span><span class="nav-lbl">Hora</span></button>
+  <button class="nav-btn" id="btn-ruling" onclick="switchTab('ruling')"><span class="nav-icon">☀</span><span class="nav-lbl">Ruling</span></button>
+  <button class="nav-btn" id="btn-moon" onclick="switchTab('moon')"><span class="nav-icon">☽</span><span class="nav-lbl">Moon</span></button>
+  <button class="nav-btn" id="btn-journal" onclick="switchTab('journal')"><span class="nav-icon">✦</span><span class="nav-lbl">Journal</span></button>
+</nav>
+
+<script>
+'use strict';
+
+// Stars
+(function(){
+  const sc=document.getElementById('stars');
+  for(let i=0;i<50;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()>.82?2:1;
+    s.style.cssText=`width:${sz}px;height:${sz}px;background:#fff;left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${(Math.random()*.45+.05).toFixed(2)};--d:${(2+Math.random()*3.5).toFixed(1)}s;--delay:${(Math.random()*4).toFixed(1)}s;`;
+    sc.appendChild(s);
+  }
+})();
+
+// Admin
+let adminTier=localStorage.getItem('vh_admin_tier')||'free';
+const isAdmin=localStorage.getItem('vh_admin')==='true';
+function enableAdmin(){localStorage.setItem('vh_admin','true');location.reload();}
+function disableAdmin(){localStorage.removeItem('vh_admin');localStorage.removeItem('vh_admin_tier');location.reload();}
+function setAdminTier(t){adminTier=t;localStorage.setItem('vh_admin_tier',t);renderAll();}
+function getTier(){return isAdmin?adminTier:'free';}
+if(isAdmin)document.getElementById('admin-bar').classList.add('show');
+
+// Core data
+const CHALDEAN=['Saturn','Jupiter','Mars','Sun','Venus','Mercury','Moon'];
+const DAY_IDX=[3,6,2,5,1,4,0];
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+const P={
+  Saturn:{sym:'♄',col:'#9B8560',
+    energy:'Discipline, exposure & endings',
+    bestFor:'Breaking cycles, banishing negative energy, exposing hidden enemies and releasing what no longer serves you',
+    psalms:['Psalm 10','Psalm 35','Psalm 52'],candle:'Black or dark blue',herb:'Hyssop',oil:'Myrrh',crystal:'Black Tourmaline',
+    sacredName:'Tzaphkiel — keeper of karmic records',angel_day:'Cassiel — angel of Saturday',angel_hour:'Cassiel — governs endings and banishment',
+    ritual_basic:'Light a black candle. Pray your psalm aloud. Name what you are releasing. Let the candle burn for one full hour.',
+    ritual_adv:'Anoint a black candle with myrrh. Place hyssop beside it. Call upon Cassiel. Speak all three psalms invoking Tzaphkiel. Declare what is ended. Seal with silence.',
+    notif:'Best for releasing, banishing and breaking cycles',
+    moonPrompts:{
+      'New Moon':'What is one habit or pattern you are ready to leave behind as this new cycle begins?',
+      'Waxing Crescent':'What would your life look like if the cycle you are stuck in finally broke — and what would you do first?',
+      'First Quarter':'What is the one thing you keep doing that you already know is not working for you?',
+      'Waxing Gibbous':'What are you still carrying that was never yours to carry in the first place?',
+      'Full Moon':'What truth have you been avoiding about a situation in your life that you already know the answer to?',
+      'Waning Gibbous':'What lesson has a painful situation been trying to teach you — and have you learned it yet?',
+      'Last Quarter':'If you could release one thing tonight and never pick it back up, what would it be?',
+      'Waning Crescent':'What are you holding onto out of fear rather than love?',
+    }
+  },
+  Jupiter:{sym:'♃',col:'#C9A84C',
+    energy:'Expansion, abundance & divine favor',
+    bestFor:'Attracting abundance, opening doors, financial blessings and favor with those in authority',
+    psalms:['Psalm 65','Psalm 72','Psalm 23'],candle:'Green or gold',herb:'Cinnamon',oil:'Frankincense',crystal:'Citrine',
+    sacredName:'Tzadkiel — keeper of mercy and grace',angel_day:'Sachiel — angel of Thursday',angel_hour:'Sachiel — governs abundance and open doors',
+    ritual_basic:'Light a green candle. Pray your psalm aloud. Speak what you are calling in. Let the flame carry it.',
+    ritual_adv:'Anoint a gold candle with frankincense. Place cinnamon beside it. Call upon Sachiel. Speak all three psalms invoking Tzadkiel. Declare every door open. Seal with gratitude.',
+    notif:'Best for abundance, open doors and divine favor',
+    moonPrompts:{
+      'New Moon':'What is one thing you want to call into your life this month — and what is actually stopping you?',
+      'Waxing Crescent':'What would you do differently if you truly believed abundance was meant for you?',
+      'First Quarter':'What opportunity have you been too afraid to pursue — and what is the real reason?',
+      'Waxing Gibbous':'What gift or skill are you underusing that could change your financial situation?',
+      'Full Moon':'What do you believe about money that you learned before the age of ten — and is it still true?',
+      'Waning Gibbous':'What are you grateful for right now that you once prayed desperately to have?',
+      'Last Quarter':'What are you holding onto that is blocking new abundance from coming in?',
+      'Waning Crescent':'What does real prosperity look like in your life — beyond just money?',
+    }
+  },
+  Mars:{sym:'♂',col:'#C0392B',
+    energy:'Courage, strength & victory',
+    bestFor:'Protection, spiritual warfare, legal matters, court cases and commanding victory over what opposes you',
+    psalms:['Psalm 91','Psalm 35','Psalm 121'],candle:'Red or orange',herb:'Rosemary',oil:"Dragon's Blood",crystal:'Red Jasper',
+    sacredName:'Kamael — commander of divine justice',angel_day:'Samael — angel of Tuesday',angel_hour:'Samael — governs victory and protection',
+    ritual_basic:'Light a red candle. Pray your psalm aloud. Declare your protection. You are not begging — you are commanding.',
+    ritual_adv:"Anoint a red candle with dragon's blood. Place rosemary beside it. Call upon Samael. Speak all three psalms invoking Kamael. Declare every enemy silenced. Seal with authority.",
+    notif:'Best for protection, courage and victory',
+    moonPrompts:{
+      'New Moon':'What boundary have you been wanting to set that you keep talking yourself out of?',
+      'Waxing Crescent':'What would you do today if you knew for certain that you were protected?',
+      'First Quarter':'What situation in your life requires you to speak up — and what is holding your voice back?',
+      'Waxing Gibbous':'Where are you playing small when the situation is calling you to step up?',
+      'Full Moon':'Who or what has been draining your energy — and what would it take for you to finally say enough?',
+      'Waning Gibbous':'What battle have you been fighting alone that you were never meant to fight by yourself?',
+      'Last Quarter':'What are you tolerating in your life right now that you know you deserve better than?',
+      'Waning Crescent':'What would change if you treated protecting your peace as non-negotiable?',
+    }
+  },
+  Sun:{sym:'☉',col:'#E8A020',
+    energy:'Success, power & recognition',
+    bestFor:'Career advancement, confidence, leadership, visibility and stepping fully into your divine purpose',
+    psalms:['Psalm 19','Psalm 8','Psalm 118'],candle:'Yellow or gold',herb:'Bay Leaf',oil:'Frankincense',crystal:'Sunstone',
+    sacredName:'Michael — archangel of light and truth',angel_day:'Michael — angel of Sunday',angel_hour:'Michael — governs recognition and purpose',
+    ritual_basic:'Light a gold candle. Pray your psalm aloud. Declare your purpose. Speak as one who already walks in it.',
+    ritual_adv:'Anoint a gold candle with frankincense. Write your name on a bay leaf beside the flame. Call upon Michael. Speak all three psalms. Step into your authority. Seal with declaration.',
+    notif:'Best for success, visibility and divine purpose',
+    moonPrompts:{
+      'New Moon':'What is one thing you want to be known for — and what is stopping you from going after it?',
+      'Waxing Crescent':'Where have you been waiting for someone to give you permission that only you can give yourself?',
+      'First Quarter':'What would you do with your life if you stopped being afraid of what people would think?',
+      'Waxing Gibbous':'What version of success have you been chasing that actually belongs to someone else?',
+      'Full Moon':'What are you most proud of that you have never allowed yourself to fully celebrate?',
+      'Waning Gibbous':'Who believed in you before you believed in yourself — and what did they see that you are still learning to see?',
+      'Last Quarter':'What part of your purpose have you been hiding because you are not sure the world is ready for it?',
+      'Waning Crescent':'If you were completely honest with yourself right now, what do you know you are called to do?',
+    }
+  },
+  Venus:{sym:'♀',col:'#D4387A',
+    energy:'Love, harmony & sweetness',
+    bestFor:'Attracting love, healing relationships, sweetening your aura and drawing good people toward you',
+    psalms:['Psalm 45','Psalm 23','Psalm 65'],candle:'Pink or rose',herb:'Rose Petals',oil:'Rose Oil',crystal:'Rose Quartz',
+    sacredName:'Haniel — keeper of love and grace',angel_day:'Anael — angel of Friday',angel_hour:'Anael — governs harmony and attraction',
+    ritual_basic:'Light a pink candle. Rub rose oil on your hands. Pray your psalm aloud. Speak what you are calling into your relationships.',
+    ritual_adv:'Anoint a pink candle with rose oil. Place rose petals around it. Call upon Anael. Speak all three psalms invoking Haniel. Declare your heart open and your aura sweetened. Seal with gratitude.',
+    notif:'Best for love, healing and sweetening your aura',
+    moonPrompts:{
+      'New Moon':'What kind of love do you actually want — and have you ever truly allowed yourself to receive it?',
+      'Waxing Crescent':'Think of the last time someone showed up for you unexpectedly. What did that feel like, and why does it stand out?',
+      'First Quarter':'What do you wish the people closest to you understood about you without you having to explain it?',
+      'Waxing Gibbous':'When do you feel most loved — and how often does that actually happen in your life right now?',
+      'Full Moon':'What relationship in your life needs an honest conversation that you have been putting off?',
+      'Waning Gibbous':'Who in your life do you love deeply but have been taking for granted?',
+      'Last Quarter':'What pattern keeps showing up in your relationships — and what role do you play in keeping it alive?',
+      'Waning Crescent':'How are you doing at loving yourself right now — and what would it look like to do better?',
+    }
+  },
+  Mercury:{sym:'☿',col:'#8E44AD',
+    energy:'Communication, clarity & truth',
+    bestFor:'Contracts, clarity of mind, breaking confusion, speaking truth and cutting through deception',
+    psalms:['Psalm 12','Psalm 19','Psalm 34'],candle:'Yellow or light blue',herb:'Lavender',oil:'Eucalyptus',crystal:'Blue Lace Agate',
+    sacredName:'Raphael — healer of minds',angel_day:'Raphael — angel of Wednesday',angel_hour:'Raphael — governs clarity and truth',
+    ritual_basic:'Light a blue candle. Pray your psalm aloud. Declare confusion broken and truth restored in every area.',
+    ritual_adv:'Anoint a blue candle with eucalyptus. Place lavender beside it. Call upon Raphael. Speak all three psalms. Declare every lie exposed and every door of clarity opened. Seal with stillness.',
+    notif:'Best for clarity, truth and breaking confusion',
+    moonPrompts:{
+      'New Moon':'What is one conversation you have been avoiding that would bring immediate clarity to your life?',
+      'Waxing Crescent':'What do you know to be true right now that you have not yet said out loud?',
+      'First Quarter':'Where in your life are you not being fully honest — with yourself or with someone else?',
+      'Waxing Gibbous':'What is one thing you have been overcomplicating that is actually much simpler than you are making it?',
+      'Full Moon':'What truth about your current situation have you been avoiding because of what it would require you to do?',
+      'Waning Gibbous':'What lie have you been telling yourself about a situation that you already know is not working?',
+      'Last Quarter':'What conversation would change everything if you finally had it?',
+      'Waning Crescent':'If you could be completely honest with one person in your life right now, what would you say?',
+    }
+  },
+  Moon:{sym:'☽',col:'#A8B8C8',
+    energy:'Intuition, emotions & cleansing',
+    bestFor:'Spiritual cleansing, dream work, emotional healing, deepening intuition and releasing what no longer serves',
+    psalms:['Psalm 51','Psalm 4','Psalm 61'],candle:'White or silver',herb:'Hyssop',oil:'Coconut Oil',crystal:'Moonstone',
+    sacredName:'Gabriel — messenger of inner truth',angel_day:'Gabriel — angel of Monday',angel_hour:'Gabriel — governs cleansing and release',
+    ritual_basic:'Light a white candle. Pray your psalm aloud. Speak what you are releasing. Let the psalm wash it clean.',
+    ritual_adv:'Anoint a white candle with coconut oil. Place hyssop beside it. Call upon Gabriel. Speak all three psalms. Declare your aura cleansed and spirit restored. Seal with silence and rest.',
+    notif:'Best for cleansing, intuition and emotional healing',
+    moonPrompts:{
+      'New Moon':'What feeling have you been carrying this week that you have not given yourself permission to feel?',
+      'Waxing Crescent':'What does your gut tell you about a situation you have been overthinking?',
+      'First Quarter':'What emotion keeps coming up for you lately — and what do you think it is trying to tell you?',
+      'Waxing Gibbous':'When was the last time you truly rested — not just slept, but genuinely let go?',
+      'Full Moon':'What are you still holding onto emotionally that you know it is time to release?',
+      'Waning Gibbous':'What have you been carrying silently that you have not told anyone — and how is it affecting you?',
+      'Last Quarter':'What would you feel if you woke up tomorrow and the thing weighing on you was finally resolved?',
+      'Waning Crescent':'What does your spirit need most right now — and are you giving it that?',
+    }
+  },
+};
+
+const MOON_PHASES=[
+  {n:'New Moon',s:'🌑',m:'A fresh cycle begins. The energy is quiet but full of potential.',c:'#3a3660'},
+  {n:'Waxing Crescent',s:'🌒',m:'Growth energy is building. Small actions carry great weight now.',c:'#6a6890'},
+  {n:'First Quarter',s:'🌓',m:'Decisions and actions. Move through resistance — this is your moment.',c:'#8B7FAE'},
+  {n:'Waxing Gibbous',s:'🌔',m:'Refine and strengthen. You are close. Keep going.',c:'#A898C4'},
+  {n:'Full Moon',s:'🌕',m:'Peak energy. Release what no longer serves. Illuminate the hidden.',c:'#D8D4EC'},
+  {n:'Waning Gibbous',s:'🌖',m:'Gratitude and reflection. Share the wisdom you have gained.',c:'#9888B8'},
+  {n:'Last Quarter',s:'🌗',m:'Let go deeply. Banish what has been draining you.',c:'#6a6890'},
+  {n:'Waning Crescent',s:'🌘',m:'Rest and restore. Prepare for the next cycle.',c:'#4a4470'},
+];
+
+const HERBS_DAY={
+  Saturn:{n:'Hyssop',p:'Deep spiritual purification. Clears what has been sent against you and breaks stagnant cycles.'},
+  Jupiter:{n:'Cinnamon',p:'Draws abundance and favor. One of the oldest prosperity herbs known to ancient traditions.'},
+  Mars:{n:'Rosemary',p:'Protection and strength. Clears negative energy and fortifies your spiritual armor.'},
+  Sun:{n:'Bay Leaf',p:'Victory and recognition. Write your intention on it — the Sun carries it forward.'},
+  Venus:{n:'Rose Petals',p:'Love, harmony and sweetness. Opens the heart and softens what has been hardened.'},
+  Mercury:{n:'Lavender',p:'Clarity and truth. Clears mental confusion and helps you speak and see clearly.'},
+  Moon:{n:'Mugwort',p:'Deep intuition and dream wisdom. Opens the inner eye and purifies the emotional body.'},
+};
+
+// State
+let sunData=null,currentPlanet=null,currentHourNum=1,isNight=false;
+let journalEntries=[],currentTab='hora',autoTimer=null,lastNotifPlanet=null,notifTimer=null;
+
+// Moon
+function getMoonPhase(d){
+  const ref=new Date('2026-05-16T03:00:00Z').getTime();
+  let b=((d.getTime()-ref)/86400000%29.530588861)/29.530588861;
+  if(b<0)b+=1;
+  const idx=Math.round(b*8)%8;
+  return{...MOON_PHASES[idx],illum:Math.round((1-Math.cos(b*2*Math.PI))/2*100)};
+}
+function getMoonSign(d){
+  const signs=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+  const syms=['\u2648','\u2649','\u264a','\u264b','\u264c','\u264d','\u264e','\u264f','\u2650','\u2651','\u2652','\u2653'];
+  const cols=['#C9784C','#6B8F71','#6B8FAF','#4C9090','#C9784C','#6B8F71','#6B8FAF','#4C9090','#C9784C','#6B8F71','#6B8FAF','#4C9090'];
+  const elems=['Fire','Earth','Air','Water','Fire','Earth','Air','Water','Fire','Earth','Air','Water'];
+  const ref=new Date('2026-05-16T03:00:00Z').getTime();
+  const i=((Math.floor(((d.getTime()-ref)/86400000/27.321661*12)+1)%12)+12)%12;
+  return{name:signs[i],sym:syms[i],col:cols[i],elem:elems[i]};
+}
+
+// Daily prompt based on ruling planet + moon phase
+function getDailyPrompt(){
+  const now=new Date();
+  const moon=getMoonPhase(now);
+  const dayRuler=CHALDEAN[DAY_IDX[now.getDay()]];
+  const planet=P[dayRuler];
+  return{prompt:planet.moonPrompts[moon.n]||planet.moonPrompts['New Moon'],moon:moon.n,planet:dayRuler,moonSym:moon.s};
+}
+
+// Psalm rotation
+function getRotatingPsalm(planet){
+  const week=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,1).getTime())/604800000);
+  return planet.psalms[week%3];
+}
+
+// Planetary hours
+function calcState(sr,ss){
+  try{
+    const now=new Date(),dow=now.getDay(),dIdx=DAY_IDX[dow];
+    const srMs=sr.getTime(),ssMs=ss.getTime(),nowMs=now.getTime();
+    if(nowMs>=srMs&&nowMs<ssMs){
+      isNight=false;
+      const hLen=(ssMs-srMs)/12;
+      const hNum=Math.min(12,Math.floor((nowMs-srMs)/hLen)+1);
+      currentHourNum=hNum;currentPlanet=CHALDEAN[(dIdx+hNum-1)%7];
+    }else{
+      isNight=true;
+      const isBefore=nowMs<srMs;
+      const tmrDow=isBefore?dow:(dow+1)%7;
+      currentPlanet=CHALDEAN[DAY_IDX[tmrDow]];currentHourNum=1;
+    }
+  }catch(e){currentPlanet='Sun';currentHourNum=1;isNight=false;}
+}
+
+function buildHourList(sr,ss,forTmr){
+  try{
+    const now=new Date();
+    const isBefSr=sunData&&now.getTime()<sunData.sr.getTime();
+    const targetDow=forTmr?(isBefSr?now.getDay():(now.getDay()+1)%7):now.getDay();
+    const dIdx=DAY_IDX[targetDow];
+    const baseSr=forTmr?new Date(sr.getTime()+86400000):sr;
+    const baseSs=forTmr?new Date(ss.getTime()+86400000):ss;
+    const srMs=baseSr.getTime(),ssMs=baseSs.getTime(),nowMs=now.getTime();
+    const hLen=(ssMs-srMs)/12;
+    let rows='';
+    for(let i=1;i<=12;i++){
+      const startMs=srMs+(i-1)*hLen;
+      const planet=CHALDEAN[(dIdx+i-1)%7];
+      const pp=P[planet];
+      const isCur=!isNight&&!forTmr&&i===currentHourNum;
+      const isPast=!forTmr&&nowMs>startMs+hLen;
+      const isFut=!isPast&&!isCur&&!forTmr;
+      const t=new Date(startMs).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      rows+=`<div class="hr-row${isCur?' cur':''}${isPast?' past':''}${isFut?' fut':''}">
+        <span class="hr-n">${i}</span>
+        <span class="hr-t">${isFut?'--:--':t}</span>
+        <span class="hr-s" style="color:${pp.col}">${pp.sym}</span>
+        <span class="hr-p" style="color:${isCur?'#C9A84C':isPast?'#6a5e8a':'#c8bfdf'}">${planet}</span>
+        ${isCur?'<span class="hr-badge">Now</span>':''}
+      </div>`;
+    }
+    return rows;
+  }catch(e){return'';}
+}
+
+function fmtT(d){try{return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return'--:--';}}
+
+// Notifications
+function showNotif(planet){
+  const p=P[planet];
+  document.getElementById('n-sym').textContent=p.sym;
+  document.getElementById('n-sym').style.color=p.col;
+  document.getElementById('n-title').textContent=`${p.sym} New Hour: ${planet}`;
+  document.getElementById('n-title').style.color=p.col;
+  document.getElementById('n-body').textContent=p.notif;
+  const el=document.getElementById('notif');
+  el.classList.remove('hide');el.classList.add('show');
+  if(notifTimer)clearTimeout(notifTimer);
+  notifTimer=setTimeout(hideNotif,7000);
+}
+function hideNotif(){
+  const el=document.getElementById('notif');
+  el.classList.add('hide');
+  setTimeout(()=>{el.classList.remove('show','hide');},350);
+}
+
+// Clock
+function updateClock(){
+  const el=document.getElementById('clock');
+  if(el){const now=new Date();el.textContent=`${DAYS[now.getDay()]} · ${now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;}
+}
+function startRefresh(){
+  if(autoTimer)clearInterval(autoTimer);
+  autoTimer=setInterval(()=>{
+    updateClock();
+    if(sunData){
+      const prev=currentPlanet;
+      calcState(sunData.sr,sunData.ss);
+      if(currentPlanet&&currentPlanet!==prev&&currentPlanet!==lastNotifPlanet){lastNotifPlanet=currentPlanet;showNotif(currentPlanet);}
+      if(currentTab==='hora')renderHora();
+    }
+  },60000);
+}
+updateClock();startRefresh();
+
+// Location
+function fetchSun(lat,lng,cb){
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=sunrise,sunset&timezone=auto&forecast_days=1`)
+    .then(r=>{if(!r.ok)throw 0;return r.json();})
+    .then(d=>{if(d.daily&&d.daily.sunrise[0])cb(new Date(d.daily.sunrise[0]),new Date(d.daily.sunset[0]),null);else cb(null,null,'Could not read sun times.');})
+    .catch(()=>cb(null,null,'Network error. Please check your connection.'));
+}
+function useGeo(){
+  showLoad('hora-tab','Reading your position...');
+  if(!navigator.geolocation){showErr('hora-tab','Location not supported on this device.');return;}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{fetchSun(pos.coords.latitude,pos.coords.longitude,(sr,ss,err)=>{
+      if(err){showErr('hora-tab',err);return;}
+      sunData={sr,ss};calcState(sr,ss);lastNotifPlanet=currentPlanet;renderHora();
+    });},
+    e=>{const m={1:'Location access denied. Please allow in browser settings.',2:'Location unavailable.',3:'Location timed out.'};showErr('hora-tab',m[e.code]||'Location error.');},
+    {timeout:12000,maximumAge:600000}
+  );
+}
+function resetLoc(){sunData=null;currentPlanet=null;renderHora();}
+function refreshNow(){if(!sunData){renderHora();return;}showLoad('hora-tab','Refreshing...');setTimeout(()=>{calcState(sunData.sr,sunData.ss);renderHora();},300);}
+function showLoad(id,msg){const el=document.getElementById(id);if(el)el.innerHTML=`<div style="text-align:center;padding:50px 0"><div class="float" style="font-size:42px;color:#C9A84C;margin-bottom:14px">✦</div><div style="font-size:13px;color:#c8bfdf">${msg}</div></div>`;}
+function showErr(id,msg){const el=document.getElementById(id);if(el)el.innerHTML=`<div style="background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.22);border-radius:14px;padding:16px;margin-bottom:12px;font-size:14px;color:#e8a090;line-height:1.65">${msg}</div><button class="btn" onclick="renderHora()">Try Again</button>`;}
+
+// Waitlist
+function submitWaitlist(){
+  const name=(document.getElementById('wl-name')||{}).value||'';
+  const email=(document.getElementById('wl-email')||{}).value||'';
+  if(!name.trim()||!email.trim()||!email.includes('@')){alert('Please enter your name and a valid email.');return;}
+  const list=JSON.parse(localStorage.getItem('vh_waitlist')||'[]');
+  list.push({name:name.trim(),email:email.trim(),date:new Date().toLocaleDateString()});
+  localStorage.setItem('vh_waitlist',JSON.stringify(list));
+  const sec=document.getElementById('wl-sec');
+  if(sec)sec.innerHTML=`<div style="text-align:center;padding:8px 0"><div class="float" style="font-size:32px;margin-bottom:10px">✦</div><div style="font-size:17px;color:#C9A84C;margin-bottom:8px">You are on the list</div><div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.7">Welcome ${name.trim()}.<br>We will reach out when Seeker and Initiate launch.<br><br>Follow Mother Louisa for the announcement.</div></div>`;
+}
+
+// ── HORA TAB ────────────────────────────────────────────────────
+function renderHora(){
+  const tab=document.getElementById('hora-tab');if(!tab)return;
+  const tier=getTier();
+  const isPaid=tier==='seeker'||tier==='initiate';
+
+  if(!currentPlanet){
+    tab.innerHTML=`
+      <div style="text-align:center;padding:18px 0 14px">
+        <div class="float" style="font-size:52px;color:#C9A84C;margin-bottom:12px;line-height:1">✦</div>
+        <div style="font-size:18px;color:#e8e0d0;margin-bottom:8px">Welcome to Viriditas Hora</div>
+        <div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.75">The living power of the hour<br>begins with knowing where you are.</div>
+      </div>
+      <div class="card" style="border-color:rgba(201,168,76,0.35);background:rgba(201,168,76,0.025)">
+        <span class="lbl">Your Location</span>
+        <div style="font-size:14px;color:#c8bfdf;line-height:1.85;margin-bottom:18px">Viriditas Hora needs your location to calculate your exact planetary hours.<br><br>Every location on Earth carries a different energy at a different time — your hours are specific to where you are.<br><br><em style="color:#e8e0d0">Your location is never stored or shared.</em></div>
+        <button class="btn" onclick="useGeo()" style="font-size:13px;padding:14px;border-color:rgba(201,168,76,0.6)">✦ &nbsp;Allow Location — Reveal My Hours</button>
+      </div>`;
+    return;
+  }
+
+  const p=P[currentPlanet];
+  const hourList=sunData?buildHourList(sunData.sr,sunData.ss,false):'';
+  const tmrList=sunData&&isNight?buildHourList(sunData.sr,sunData.ss,true):'';
+
+  // Hero
+  let hero='';
+  if(!isNight){
+    hero=`
+      <div class="planet-pulse" style="font-size:70px;line-height:1;color:${p.col};text-shadow:0 0 50px ${p.col}60;margin-bottom:8px">${p.sym}</div>
+      <div style="font-size:22px;color:#e8e0d0;margin-bottom:4px">${currentPlanet} Hour</div>
+      <div style="font-size:13px;color:#9d8fbf;font-style:italic;margin-bottom:14px">${p.energy}</div>
+      <div style="background:${p.col}12;border-radius:11px;padding:12px 14px;text-align:left;margin-bottom:10px">
+        <div style="font-size:10px;letter-spacing:.12em;color:${p.col};text-transform:uppercase;margin-bottom:4px">Best used for</div>
+        <div style="font-size:13px;color:#c8bfdf;line-height:1.6">${p.bestFor}</div>
+      </div>
+      <div style="font-size:11px;color:#4a3e6a;font-style:italic">Deeper tools and rituals unlock with Seeker ↓</div>`;
+  }else{
+    hero=`
+      <div style="font-size:46px;margin-bottom:10px;line-height:1">☾</div>
+      <div style="font-size:18px;color:#e8e0d0;margin-bottom:6px">Night Hours</div>
+      <div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.65;margin-bottom:14px">Night hours are reserved for Seeker members.<br><br>Coming at sunrise — <strong style="color:${p.col}">${p.sym} ${currentPlanet} Hour</strong></div>
+      <button onclick="document.getElementById('wl-sec').scrollIntoView({behavior:'smooth'})" style="padding:9px 18px;background:rgba(138,75,200,0.1);border:1px solid rgba(138,75,200,0.28);border-radius:20px;color:#8060b8;font-size:12px;cursor:pointer;font-family:inherit;touch-action:manipulation">Join the Waitlist</button>`;
+  }
+
+  // Paid content card
+  let paidCard='';
+  if(isPaid){
+    const tc=tier==='seeker'?'rgba(138,75,200,0.4)':'rgba(201,168,76,0.45)';
+    const tb=tier==='seeker'?'rgba(138,75,200,0.04)':'rgba(201,168,76,0.03)';
+    const tv=tier==='seeker'?'#b085e8':'#C9A84C';
+    paidCard=`<div class="card" style="border-color:${tc};background:${tb}">
+      <span class="lbl" style="color:${tv}">${tier==='seeker'?'Seeker':'Initiate'} — ${currentPlanet} Hour</span>
+      <div class="row"><span class="row-l">📖 Psalms</span><span class="row-r" style="color:${tv};font-size:12px">${p.psalms.join(' · ')}</span></div>
+      <div class="row"><span class="row-l">✦ Sacred Name</span><span class="row-r" style="color:${tv};font-size:12px">${p.sacredName.split('—')[0].trim()}</span></div>
+      ${tier==='initiate'?`<div class="row"><span class="row-l">👼 Angel of Day</span><span class="row-r" style="font-size:12px">${p.angel_day.split('—')[0].trim()}</span></div><div class="row"><span class="row-l">👼 Angel of Hour</span><span class="row-r" style="font-size:12px">${p.angel_hour.split('—')[0].trim()}</span></div>`:''}
+      <div class="row"><span class="row-l">💎 Crystal</span><span class="row-r">${p.crystal}</span></div>
+      <div class="row"><span class="row-l">🌿 Oil</span><span class="row-r">${p.oil}</span></div>
+      <div style="margin-top:12px;background:${tier==='seeker'?'rgba(138,75,200,0.08)':'rgba(201,168,76,0.06)'};border-radius:10px;padding:12px">
+        <div style="font-size:10px;letter-spacing:.12em;color:${tv};text-transform:uppercase;margin-bottom:6px">${tier==='initiate'?'Advanced':'Basic'} Ritual</div>
+        <div style="font-size:13px;color:#c8bfdf;line-height:1.65">${tier==='initiate'?p.ritual_adv:p.ritual_basic}</div>
+      </div>
+    </div>`;
+  }
+
+  tab.innerHTML=`<div class="fade-in">
+
+    <!-- Hero -->
+    <div style="background:rgba(255,255,255,0.03);border:1px solid ${p.col}30;border-radius:17px;padding:20px 16px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,${p.col}0c 0%,transparent 65%);pointer-events:none"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:10px;letter-spacing:.1em;color:#5a4e7a;text-transform:uppercase">${isNight?'☾ Night':'☀ Day'} · Hour ${currentHourNum}</div>
+        <div style="display:flex;gap:5px">
+          <button onclick="refreshNow()" style="font-size:10px;color:#C9A84C;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.15);border-radius:20px;padding:3px 9px;cursor:pointer;font-family:inherit;touch-action:manipulation">↻</button>
+          <button onclick="resetLoc()" style="font-size:10px;color:#5a4e7a;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:3px 9px;cursor:pointer;font-family:inherit;touch-action:manipulation">Change</button>
+        </div>
+      </div>
+      ${hero}
+    </div>
+
+    <!-- Sunrise / Sunset -->
+    ${sunData?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="card" style="text-align:center;padding:12px;margin-bottom:0"><div style="font-size:16px;margin-bottom:2px">☀</div><div style="font-size:10px;letter-spacing:.1em;color:#5a4e7a;text-transform:uppercase">Sunrise</div><div style="font-size:15px;color:#C9A84C;margin-top:2px">${fmtT(sunData.sr)}</div></div>
+      <div class="card" style="text-align:center;padding:12px;margin-bottom:0"><div style="font-size:16px;margin-bottom:2px">☾</div><div style="font-size:10px;letter-spacing:.1em;color:#5a4e7a;text-transform:uppercase">Sunset</div><div style="font-size:15px;color:#C9A84C;margin-top:2px">${fmtT(sunData.ss)}</div></div>
+    </div>`:''}
+
+    ${paidCard}
+
+    <!-- Hour List -->
+    ${sunData?`<div class="card">
+      <span class="lbl">${isNight?"Tomorrow's":"Today's"} 12 Planetary Hours</span>
+      ${isNight?tmrList:hourList}
+      <div style="margin-top:12px;padding:12px;background:rgba(138,75,200,0.06);border:1px solid rgba(138,75,200,0.18);border-radius:10px;text-align:center">
+        <div style="font-size:12px;color:#8060b8;margin-bottom:6px">Want tools for each hour?</div>
+        <div style="font-size:11px;color:#5a4e7a;margin-bottom:8px">Psalm, candle, herb, crystal and ritual — updated every hour</div>
+        <button onclick="document.getElementById('wl-sec').scrollIntoView({behavior:'smooth'})" style="font-size:11px;padding:6px 16px;background:rgba(138,75,200,0.12);border:1px solid rgba(138,75,200,0.25);border-radius:20px;color:#8060b8;cursor:pointer;font-family:inherit;touch-action:manipulation">Upgrade to Seeker ↓</button>
+      </div>
+    </div>`:''}
+
+    <!-- Coming Soon -->
+    ${!isPaid?`
+    <div class="cs-card cs-s">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px">
+        <div><div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#b085e8;margin-bottom:4px">Seeker</div><div style="font-size:19px;color:#e8e0d0;margin-bottom:2px">$4.99<span style="font-size:12px;color:#5a4e7a"> / month</span></div><div style="font-size:12px;color:#9d8fbf;font-style:italic">Healing & Protecting your energy</div></div>
+        <div style="font-size:24px;color:#b085e8;opacity:0.4;flex-shrink:0;line-height:1">⚗</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="feat"><span style="width:18px;flex-shrink:0;text-align:center">☾</span><span class="feat-t">All 24 planetary hours — day and night</span></div>
+        <div class="feat"><span style="width:18px;flex-shrink:0;text-align:center">📖</span><span class="feat-t">Psalm, sacred name, crystal and ritual per hour</span></div>
+        <div class="feat"><span style="width:18px;flex-shrink:0;text-align:center">📜</span><span class="feat-t">Three daily rituals — cleanse, protect and sweeten</span></div>
+        <div class="feat"><span style="width:18px;flex-shrink:0;text-align:center">🌿</span><span class="feat-t">Full herb and oil system per hour</span></div>
+      </div>
+      <button onclick="document.getElementById('wl-sec').scrollIntoView({behavior:'smooth'})" style="width:100%;padding:11px;background:rgba(138,75,200,0.1);border:1px solid rgba(138,75,200,0.28);border-radius:12px;color:#8060b8;font-size:12px;letter-spacing:.05em;cursor:pointer;font-family:inherit;text-transform:uppercase;touch-action:manipulation">Coming Soon — Join Waitlist</button>
+    </div>
+
+    <div class="cs-card cs-i">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px">
+        <div><div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#C9A84C;margin-bottom:4px">Initiate</div><div style="font-size:19px;color:#e8e0d0;margin-bottom:2px">$9.99<span style="font-size:12px;color:#5a4e7a"> / month</span></div><div style="font-size:12px;color:#9d8fbf;font-style:italic">Controlling & Utilizing your energy</div></div>
+        <div style="font-size:24px;color:#C9A84C;opacity:0.4;flex-shrink:0;line-height:1">✦</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="feat"><span style="width:18px;flex-shrink:0;text-align:center">✦</span><span class="feat-t">Sacred name for all three psalms every hour</span></div>
+        <div class="feat"><span style="width:18px;flex-shrink:0;text-align:center">👼</span><span class="feat-t">Ruling angel of the day and hour</span></div>
+        <div class="feat"><span style="width:18px;flex-shrink:0;text-align:center">♈</span><span class="feat-t">Birth chart integration and personalized rituals</span></div>
+        <div class="feat"><span style="width:18px;flex-shrink:0;text-align:center">📊</span><span class="feat-t">Emotional pattern tracking and monthly report</span></div>
+      </div>
+      <button onclick="document.getElementById('wl-sec').scrollIntoView({behavior:'smooth'})" style="width:100%;padding:11px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.28);border-radius:12px;color:#C9A84C;font-size:12px;letter-spacing:.05em;cursor:pointer;font-family:inherit;text-transform:uppercase;touch-action:manipulation">Coming Soon — Join Waitlist</button>
+    </div>`:''}
+
+    <!-- Waitlist -->
+    <div class="wl-card" id="wl-sec">
+      <span class="lbl">Join the Waitlist</span>
+      <div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.7;margin-bottom:16px">Be the first to know when Seeker and Initiate launch.<br>Ancient wisdom. Modern healing.</div>
+      <input type="text" id="wl-name" placeholder="Your name">
+      <input type="email" id="wl-email" placeholder="Your email address">
+      <button class="btn" onclick="submitWaitlist()">Reserve My Spot ✦</button>
+    </div>
+
+  </div>`;
+}
+
+// ── RULING TAB ──────────────────────────────────────────────────
+function renderRuling(){
+  const tab=document.getElementById('ruling-tab');if(!tab)return;
+  const now=new Date(),dow=now.getDay();
+  const dayRuler=CHALDEAN[DAY_IDX[dow]];
+  const dp=P[dayRuler];
+  const rotPsalm=getRotatingPsalm(dp);
+  const daily=getDailyPrompt();
+  const herb=HERBS_DAY[dayRuler];
+
+  tab.innerHTML=`<div class="fade-in">
+
+    <!-- Ruling Planet Hero -->
+    <div style="background:rgba(255,255,255,0.03);border:1px solid ${dp.col}35;border-radius:17px;padding:22px 16px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 25%,${dp.col}0e 0%,transparent 65%);pointer-events:none"></div>
+      <div style="font-size:10px;letter-spacing:.18em;color:#5a4e7a;text-transform:uppercase;margin-bottom:10px">Ruling Planet of the Day</div>
+      <div class="planet-pulse" style="font-size:72px;line-height:1;color:${dp.col};text-shadow:0 0 50px ${dp.col}60;margin-bottom:8px">${dp.sym}</div>
+      <div style="font-size:22px;color:#e8e0d0;margin-bottom:4px">${dayRuler}</div>
+      <div style="font-size:13px;color:#9d8fbf;font-style:italic;margin-bottom:14px">${dp.energy}</div>
+      <div style="background:${dp.col}12;border-radius:11px;padding:12px 14px;text-align:left">
+        <div style="font-size:10px;letter-spacing:.12em;color:${dp.col};text-transform:uppercase;margin-bottom:4px">Today's energy is best for</div>
+        <div style="font-size:13px;color:#c8bfdf;line-height:1.6">${dp.bestFor}</div>
+      </div>
+    </div>
+
+    <!-- Today's Daily Tools -->
+    <div class="card" style="border-color:${dp.col}30">
+      <span class="lbl">Today's Daily Tools</span>
+      <div class="row"><span class="row-l">📖 Psalm of the Day</span><span class="row-r" style="color:${dp.col}">${rotPsalm}</span></div>
+      <div class="row"><span class="row-l">🕯 Candle</span><span class="row-r">${dp.candle}</span></div>
+      <div class="row"><span class="row-l">🌿 Herb</span><span class="row-r">${dp.herb}</span></div>
+    </div>
+
+    <!-- Herb of the Day details -->
+    <div class="card">
+      <span class="lbl">Today's Herb — ${dayRuler} Energy</span>
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <div style="font-size:24px;line-height:1;margin-top:2px">🌿</div>
+        <div><div style="font-size:16px;color:#e8e0d0;margin-bottom:4px">${herb.n}</div><div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.6">${herb.p}</div></div>
+      </div>
+    </div>
+
+    <!-- Daily Energy Prompt -->
+    <div style="background:linear-gradient(135deg,rgba(${dayRuler==='Saturn'?'80,60,30':'dayRuler'==='Jupiter'?'80,65,10':'35,18,80'},0.3),rgba(15,10,35,0.4));background:linear-gradient(135deg,${dp.col}18,rgba(10,6,26,0.5));border:1px solid ${dp.col}30;border-radius:16px;padding:18px;margin-bottom:12px">
+      <div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:${dp.col};margin-bottom:4px">Daily Energy Prompt</div>
+      <div style="font-size:11px;color:#5a4e7a;margin-bottom:12px">${daily.moonSym} ${daily.moon} · ${dayRuler} Day</div>
+      <div style="font-size:14px;color:#c8bfdf;font-style:italic;line-height:1.82">"${daily.prompt}"</div>
+      <div style="margin-top:14px">
+        <button onclick="switchTab('journal')" style="font-size:11px;padding:6px 14px;background:${dp.col}18;border:1px solid ${dp.col}35;border-radius:20px;color:${dp.col};cursor:pointer;font-family:inherit;touch-action:manipulation">Write your response ✦</button>
+      </div>
+    </div>
+
+  </div>`;
+}
+
+// ── MOON TAB ────────────────────────────────────────────────────
+function renderMoon(){
+  const tab=document.getElementById('moon-tab');if(!tab)return;
+  const now=new Date(),dow=now.getDay();
+  const moon=getMoonPhase(now);
+  const sign=getMoonSign(now);
+  const dayRuler=CHALDEAN[DAY_IDX[dow]];
+  const dp=P[dayRuler];
+
+  // Moon-specific guidance
+  const moonGuidance={
+    'New Moon':{title:'Plant Your Seeds',body:'The new moon is a time of stillness and intention. Write down what you want to call into your life this cycle. Speak it aloud. Pray over it. The energy is receptive right now.',action:'Light a white candle tonight and speak your intentions into the flame.'},
+    'Waxing Crescent':{title:'Take the First Step',body:'Growth is beginning. The energy supports new starts, small brave actions and calling in what you planted at the new moon. Do not wait for perfect conditions.',action:'Write one thing you will do today to move toward what you called in.'},
+    'First Quarter':{title:'Push Through',body:'You may face resistance right now — that is a sign you are moving in the right direction. The first quarter moon supports decisions, action and breaking through what has been holding you back.',action:'Do the one thing you have been putting off. Do it today.'},
+    'Waxing Gibbous':{title:'Refine and Strengthen',body:'You are close to what you have been building. This is the time to adjust, refine and strengthen your intentions. Gratitude is powerful right now — it opens the door wider.',action:'List three things that are already moving in the right direction.'},
+    'Full Moon':{title:'Release and Illuminate',body:'The full moon reveals what has been hidden and amplifies everything — including what needs to go. Use this energy to release, cleanse and complete. What you let go of now creates space for what is coming.',action:'Write down what you are releasing and burn or bury the paper tonight.'},
+    'Waning Gibbous':{title:'Share and Reflect',body:'The harvest phase. Reflect on what this cycle has brought you and share your gratitude. The energy supports giving back, teaching and deep reflection.',action:'Tell someone something you are grateful for today.'},
+    'Last Quarter':{title:'Let Go Deeply',body:'This is the most powerful time for banishing, releasing and cutting what no longer serves. The energy supports hard decisions, final endings and spiritual cleansing work.',action:'Cleanse your space today. Open windows. Burn sage or hyssop.'},
+    'Waning Crescent':{title:'Rest and Restore',body:'The final phase before the new cycle. Your energy may be lower than usual — honor that. Rest is sacred. Prepare your spirit for what is coming by emptying out what remains.',action:'Give yourself permission to rest without guilt today.'},
+  };
+  const guide=moonGuidance[moon.n]||moonGuidance['New Moon'];
+
+  tab.innerHTML=`<div class="fade-in">
+
+    <!-- Moon Phase -->
+    <div class="card" style="border-color:${moon.c}55;text-align:center;padding:24px 16px">
+      <span class="lbl" style="text-align:center;display:block">Today's Lunar Phase</span>
+      <div style="font-size:62px;margin-bottom:10px;line-height:1">${moon.s}</div>
+      <div style="font-size:20px;color:#e8e0d0;margin-bottom:4px">${moon.n}</div>
+      <div style="font-size:12px;color:${moon.c};margin-bottom:10px">${moon.illum}% illuminated</div>
+      <div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.65">${moon.m}</div>
+    </div>
+
+    <!-- Moon Sign -->
+    <div class="card" style="border-color:${sign.col}45">
+      <span class="lbl">Moon Currently in</span>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="font-size:38px;color:${sign.col};line-height:1">${sign.sym}</div>
+        <div>
+          <div style="font-size:18px;color:#e8e0d0;margin-bottom:2px">${sign.name}</div>
+          <div style="font-size:12px;color:${sign.col};font-style:italic;margin-bottom:4px">${sign.elem} Sign</div>
+          <div style="font-size:12px;color:#6a5e8a;line-height:1.5">The moon shifts signs every 2–3 days.<br>Your emotional energy moves with it.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Moon Guidance -->
+    <div style="background:linear-gradient(135deg,rgba(20,12,50,0.6),rgba(10,5,28,0.6));border:1px solid ${moon.c}40;border-radius:16px;padding:18px;margin-bottom:12px">
+      <div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:${moon.c};margin-bottom:6px">Moon Guidance</div>
+      <div style="font-size:16px;color:#e8e0d0;margin-bottom:8px;font-weight:normal">${guide.title}</div>
+      <div style="font-size:13px;color:#c8bfdf;line-height:1.72;margin-bottom:14px">${guide.body}</div>
+      <div style="background:${moon.c}12;border-radius:10px;padding:12px;border-left:3px solid ${moon.c}60">
+        <div style="font-size:10px;letter-spacing:.12em;color:${moon.c};text-transform:uppercase;margin-bottom:5px">Your action for today</div>
+        <div style="font-size:13px;color:#c8bfdf;line-height:1.6">${guide.action}</div>
+      </div>
+    </div>
+
+    <!-- Today's planet context -->
+    <div class="card" style="border-color:${dp.col}30">
+      <span class="lbl">Today's Ruling Planet</span>
+      <div style="display:flex;align-items:center;gap:12px"><div style="font-size:30px;color:${dp.col};line-height:1">${dp.sym}</div><div><div style="font-size:15px;color:#e8e0d0">${DAYS[dow]} — ${dayRuler}</div><div style="font-size:12px;color:#9d8fbf;font-style:italic;margin-top:2px">${dp.energy}</div></div></div>
+    </div>
+
+  </div>`;
+}
+
+// ── JOURNAL TAB ─────────────────────────────────────────────────
+function renderJournal(){
+  const tab=document.getElementById('journal-tab');if(!tab)return;
+  const daily=getDailyPrompt();
+  const feelOpts=[
+    {g:'── HEAVY EMOTIONS ──',f:[]},
+    {g:null,f:['Angry','Fearful','Desperate','Despairing','Grief-stricken','Hopeless','Numb','Bitter','Resentful','Heartbroken']},
+    {g:'── ANXIOUS EMOTIONS ──',f:[]},
+    {g:null,f:['Anxious','Overwhelmed','Scattered','Restless','Unsettled','On edge','Disconnected']},
+    {g:'── LOW ENERGY ──',f:[]},
+    {g:null,f:['Heavy','Drained','Exhausted','Blocked','Stuck','Lost','Foggy']},
+    {g:'── PROCESSING ──',f:[]},
+    {g:null,f:['Confused','Searching','Uncertain','Reflective','Conflicted']},
+    {g:'── POSITIVE ──',f:[]},
+    {g:null,f:['Peaceful','Grateful','Centered','Clear','Hopeful','Energized','Grounded','Joyful']},
+  ].map(g=>g.g?`<option disabled style="color:#C9A84C;background:#0f0d24;font-weight:bold">${g.g}</option>`:g.f.map(f=>`<option value="${f}" style="color:#e8e0d0;background:#0f0d24">${f}</option>`).join('')).join('');
+
+  const entries=journalEntries.slice(0,12).map(e=>`
+    <div style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;gap:8px;flex-wrap:wrap">
+        <span style="font-size:11px;color:#C9A84C">${e.planet?e.planet+' Hour':''}</span>
+        <span style="font-size:11px;color:#5a4e7a">${e.date}</span>
+      </div>
+      ${e.feeling?`<div style="margin-bottom:7px"><span style="font-size:11px;padding:2px 9px;border-radius:20px;background:rgba(201,168,76,0.1);color:#C9A84C">${e.feeling}</span></div>`:''}
+      <div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.6">${e.text}</div>
+    </div>`).join('');
+
+  tab.innerHTML=`<div class="fade-in">
+
+    <!-- Today's Prompt -->
+    <div style="background:linear-gradient(135deg,rgba(35,20,80,0.5),rgba(18,10,45,0.5));border:1px solid rgba(138,75,200,0.28);border-radius:16px;padding:18px;margin-bottom:12px">
+      <div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9070c8;margin-bottom:4px">Today's Reflection</div>
+      <div style="font-size:11px;color:#5a4e7a;margin-bottom:10px">${daily.moonSym} ${daily.moon} · ${daily.planet} Day</div>
+      <div style="font-size:15px;color:#c8bfdf;font-style:italic;line-height:1.82;margin-bottom:14px">"${daily.prompt}"</div>
+      <div style="font-size:12px;color:#4a3e6a">Take your time. There is no wrong answer.</div>
+    </div>
+
+    <!-- Write Area -->
+    <div class="card">
+      <span class="lbl">Write Here</span>
+      <textarea id="j-in" placeholder="Write freely. This space belongs to you..." rows="6"></textarea>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:stretch">
+        <div style="position:relative;flex:1.2">
+          <select id="feel-sel" style="width:100%;height:100%;min-height:44px;background:#0f0d24;border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#7a6e8a;font-family:inherit;font-size:13px;padding:10px 32px 10px 12px;-webkit-appearance:none;appearance:none;">
+            <option value="" style="background:#0f0d24">How do you feel?</option>
+            ${feelOpts}
+          </select>
+          <div style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#C9A84C;font-size:13px;pointer-events:none">▾</div>
+        </div>
+        <button class="btn" onclick="saveEntry()" style="flex:1;padding:10px;font-size:12px;white-space:nowrap">Seal Entry</button>
+      </div>
+    </div>
+
+    <!-- Seeker teaser -->
+    <div style="background:rgba(138,75,200,0.05);border:1px solid rgba(138,75,200,0.15);border-radius:14px;padding:16px;margin-bottom:14px;text-align:center">
+      <div style="font-size:13px;color:#c8bfdf;font-style:italic;line-height:1.75;margin-bottom:10px">Upgrade to <strong style="color:#b085e8">Seeker</strong> to get prompts that shift with every planetary hour — and track your emotional patterns over time.</div>
+      <button onclick="switchTab('hora');setTimeout(()=>document.getElementById('wl-sec').scrollIntoView({behavior:'smooth'}),150)" style="padding:9px 18px;background:rgba(138,75,200,0.1);border:1px solid rgba(138,75,200,0.28);border-radius:20px;color:#8060b8;font-size:12px;cursor:pointer;font-family:inherit;touch-action:manipulation">Join the Waitlist</button>
+    </div>
+
+    <!-- Past entries -->
+    ${journalEntries.length>0?`<div><span class="lbl">Your Energy Log</span>${entries}</div>`:''}
+
+  </div>`;
+}
+
+function saveEntry(){
+  try{
+    const inp=document.getElementById('j-in');
+    const feel=document.getElementById('feel-sel');
+    if(!inp||!inp.value.trim())return;
+    journalEntries.unshift({text:inp.value.trim(),date:new Date().toLocaleDateString(),planet:currentPlanet||'',feeling:feel?feel.value:''});
+    inp.value='';if(feel)feel.value='';
+    renderJournal();
+  }catch(e){}
+}
+
+// Tab switching
+function switchTab(name){
+  currentTab=name;
+  ['hora','ruling','moon','journal'].forEach(t=>{
+    const el=document.getElementById(t+'-tab');
+    const btn=document.getElementById('btn-'+t);
+    if(el)el.style.display=t===name?'block':'none';
+    if(btn)btn.classList.toggle('active',t===name);
+  });
+  if(name==='ruling')renderRuling();
+  if(name==='moon')renderMoon();
+  if(name==='journal')renderJournal();
+}
+
+function renderAll(){renderHora();if(currentTab==='ruling')renderRuling();if(currentTab==='moon')renderMoon();if(currentTab==='journal')renderJournal();}
+
+// Init
+renderHora();
+</script>
+</body>
+</html>
