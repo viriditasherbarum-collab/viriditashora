@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Viriditas Hora</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { background: linear-gradient(180deg, #0f0a1f 0%, #1a0f2e 100%); color: #e0d4ff; font-family: system-ui, sans-serif; }
+    .energy-block { background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(138,75,200,0.08)); border: 1px solid rgba(201,168,76,0.3); }
+  </style>
+</head>
+<body class="min-h-screen pb-24">
+
+  <div class="max-w-md mx-auto px-4 pt-6">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold tracking-widest text-amber-300">VIRIDITAS HORA</h1>
+      <p class="text-purple-300 text-sm mt-1">The Living Power of the Hour</p>
+      <p id="current-date" class="text-xs text-purple-400 mt-2"></p>
+    </div>
+
+    <!-- HORA Tab -->
+    <div id="hora-tab">
+      <!-- Current Hour Hero -->
+      <div id="current-hour-card" class="bg-gradient-to-br from-amber-900/30 to-purple-900/30 border border-amber-300/30 rounded-3xl p-6 mb-6 text-center">
+        <div id="planet-symbol" class="text-7xl mb-3"></div>
+        <div id="planet-name" class="text-3xl font-bold text-amber-300"></div>
+        <div id="best-for" class="text-purple-100 mt-3 text-lg"></div>
+      </div>
+
+      <!-- NEW: Current Energy Block -->
+      <div id="energy-block" class="energy-block rounded-3xl p-6 mb-8 text-center">
+        <div class="text-amber-300 text-xs tracking-widest mb-2">THIS HOUR'S ENERGY</div>
+        <div id="affirmation" class="italic text-lg leading-relaxed text-purple-100 mb-6"></div>
+        <div class="text-purple-300 text-sm" id="simple-practice"></div>
+      </div>
+
+      <h3 class="text-amber-300 mb-4">DAYTIME PLANETARY HOURS</h3>
+      <div id="hours-list" class="space-y-3"></div>
+    </div>
+
+    <!-- Other tabs (Ruling, Moon, Journal) -->
+    <div id="ruling-tab" class="hidden">Ruling Tab Content</div>
+    <div id="moon-tab" class="hidden">Moon Tab Content</div>
+    <div id="journal-tab" class="hidden">Journal Tab Content</div>
+
+  </div>
+
+  <script>
+    // Basic setup
+    function updateDate() {
+      const now = new Date();
+      document.getElementById("current-date").textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    }
+
+    // Placeholder for real calculation (you can expand later)
+    function updateCurrentEnergy() {
+      const planets = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"];
+      const randomPlanet = planets[Math.floor(Math.random() * planets.length)];
+
+      const affirmations = {
+        "Venus": "I am worthy of love, beauty, and harmonious connections.",
+        "Jupiter": "I am open to receiving abundance in all forms.",
+        "Mars": "I move with courage and focused power.",
+        "Sun": "I shine brightly and step into my light.",
+        "Mercury": "My mind is clear and my words flow with ease.",
+        "Moon": "I trust my intuition and honor my emotions.",
+        "Saturn": "I release what no longer serves me with grace."
+      };
+
+      const practices = {
+        "Venus": "Spray your favorite scent slowly and breathe it in.",
+        "Jupiter": "Stretch your arms wide and take a deep breath.",
+        "Mars": "Stand tall and roll your shoulders back.",
+        "Sun": "Smile for 10 seconds and place your hand on your heart.",
+        "Mercury": "Count backwards slowly from 10 to 1.",
+        "Moon": "Take three slow, deep breaths.",
+        "Saturn": "Press your feet firmly into the ground for 10 seconds."
+      };
+
+      document.getElementById("affirmation").textContent = affirmations[randomPlanet];
+      document.getElementById("simple-practice").textContent = practices[randomPlanet];
+    }
+
+    // Initialize
+    updateDate();
+    updateCurrentEnergy();
+  </script>
+</body>
+</html>
