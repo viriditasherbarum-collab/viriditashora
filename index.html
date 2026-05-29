@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Viriditas Hora">
+<meta name="theme-color" content="#080614">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Viriditas Hora</title>
+<script defer src="/_vercel/insights/script.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;}
+html,body{height:100%;height:-webkit-fill-available;}
+body{font-family:'Palatino Linotype',Palatino,Georgia,serif;background:#080614;color:#e8e0d0;min-height:100vh;overflow-x:hidden;}
+@keyframes twinkle{0%,100%{opacity:.06}50%{opacity:.6}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:1}to{opacity:0;transform:translateY(-100%)}}
+.star{position:fixed;border-radius:50%;pointer-events:none;animation:twinkle var(--d) ease-in-out infinite;animation-delay:var(--delay);}
+.fade-in{animation:fadeIn 0.4s ease forwards;}
+.planet-pulse{animation:pulse 3.5s ease-in-out infinite;}
+.floatanim{animation:float 4s ease-in-out infinite;}
+.card{background:rgba(255,255,255,0.034);border:1px solid rgba(255,255,255,0.09);border-radius:16px;padding:18px;margin-bottom:12px;}
+.lbl{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#C9A84C;margin-bottom:10px;display:block;}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;gap:8px;}
+.row:last-child{border-bottom:none;}
+.row-l{color:#c8bfdf;flex:1;line-height:1.4;}
+.row-r{color:#e8e0d0;text-align:right;flex-shrink:0;}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;max-width:440px;width:100%;margin:0 auto;padding:12px 13px calc(72px + env(safe-area-inset-bottom));}
+#app.has-bar{padding-top:calc(48px + env(safe-area-inset-top));}
+#nav{position:fixed;bottom:0;left:0;right:0;background:#0c0920;border-top:1px solid rgba(201,168,76,0.25);display:grid;grid-template-columns:1fr 1fr 1fr 1fr;z-index:1000;padding-bottom:env(safe-area-inset-bottom);}
+.nav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;background:none;border:none;border-top:3px solid transparent;color:#6a5e8a;font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;transition:all 0.2s;min-height:60px;width:100%;}
+.nav-icon-wrap{width:40px;height:32px;display:flex;align-items:center;justify-content:center;margin-bottom:3px;border-radius:10px;transition:background 0.2s;}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;}
+#btn-hora.active{color:#C9A84C;border-top-color:#C9A84C;}
+#btn-hora.active .nav-icon-wrap{background:rgba(201,168,76,0.14);}
+#btn-ruling.active{color:#E8A020;border-top-color:#E8A020;}
+#btn-ruling.active .nav-icon-wrap{background:rgba(232,160,32,0.14);}
+#btn-moon.active{color:#A8C0D0;border-top-color:#A8C0D0;}
+#btn-moon.active .nav-icon-wrap{background:rgba(168,192,208,0.14);}
+#btn-journal.active{color:#D4387A;border-top-color:#D4387A;}
+#btn-journal.active .nav-icon-wrap{background:rgba(212,56,122,0.14);}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#2d1f6e,#1a1035);border:1px solid rgba(201,168,76,0.4);border-radius:12px;color:#C9A84C;font-size:13px;letter-spacing:.07em;cursor:pointer;font-family:inherit;text-transform:uppercase;touch-action:manipulation;-webkit-appearance:none;transition:opacity 0.15s;}
+.btn:active{opacity:0.75;}
+.btn-s{background:linear-gradient(135deg,#3d1f8e,#2a1060);border-color:rgba(138,75,200,0.5);color:#b085e8;}
+textarea{resize:none;font-family:inherit;width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:14px;color:#e8e0d0;font-size:15px;line-height:1.6;-webkit-appearance:none;display:block;}
+textarea:focus{outline:none;border-color:#C9A84C;}
+.hr-row{display:flex;align-items:center;padding:9px 10px;border-radius:10px;margin-bottom:5px;background:rgba(255,255,255,0.025);border:1px solid transparent;gap:10px;}
+.hr-row.cur{background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.3);}
+.hr-row.past{opacity:.45;}
+.hr-row.fut{opacity:.5;}
+.hr-n{font-size:11px;color:#6a5e8a;width:20px;flex-shrink:0;text-align:right;}
+.hr-t{font-size:12px;color:#9d8fbf;width:58px;flex-shrink:0;}
+.hr-s{font-size:15px;width:20px;flex-shrink:0;}
+.hr-p{font-size:13px;flex:1;color:#c8bfdf;}
+.hr-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(201,168,76,0.15);color:#C9A84C;flex-shrink:0;}
+.cs-card{border-radius:16px;padding:18px;margin-bottom:12px;}
+.cs-s{background:linear-gradient(135deg,rgba(55,18,110,0.28),rgba(28,8,65,0.28));border:1px solid rgba(138,75,200,0.3);}
+.cs-i{background:linear-gradient(135deg,rgba(48,33,4,0.3),rgba(28,18,4,0.3));border:1px solid rgba(201,168,76,0.3);}
+.feat{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;}
+.feat:last-child{border-bottom:none;}
+.feat-t{color:#c8bfdf;line-height:1.4;flex:1;}
+#notif{position:fixed;top:0;left:0;right:0;z-index:3000;display:none;padding-top:env(safe-area-inset-top);}
+#notif-in{max-width:440px;margin:0 auto;background:linear-gradient(135deg,#180c40,#281660);border-bottom:1px solid rgba(201,168,76,0.32);padding:12px 16px;display:flex;align-items:center;gap:12px;}
+#notif.show{display:block;animation:slideDown 0.38s ease;}
+#notif.hide{animation:slideUp 0.3s ease forwards;}
+/* Auth bar - shows when logged in */
+#auth-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:2000;background:rgba(6,4,18,0.97);border-bottom:1px solid rgba(201,168,76,0.2);padding-top:env(safe-area-inset-top);}
+#auth-bar-inner{max-width:440px;margin:0 auto;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;}
+#auth-bar.show{display:block;}
+/* Preview bar - only shown with ?preview=true */
+#preview-bar{display:none;position:fixed;bottom:calc(60px + env(safe-area-inset-bottom));left:0;right:0;z-index:1500;}
+#preview-bar-inner{max-width:440px;margin:0 auto;background:rgba(20,10,50,0.97);border:1px solid rgba(138,75,200,0.4);border-radius:12px;margin:0 12px;padding:8px 12px;display:flex;align-items:center;gap:8px;}
+#preview-bar.show{display:block;}
+.prev-btn{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#9d8fbf;cursor:pointer;font-family:inherit;touch-action:manipulation;-webkit-appearance:none;}
+.prev-btn.active{background:rgba(201,168,76,0.15);border-color:rgba(201,168,76,0.4);color:#C9A84C;}
+</style>
+</head>
+<body>
+
+<!-- In-app notification banner -->
+<div id="notif">
+  <div id="notif-in">
+    <div id="n-sym" style="font-size:24px;flex-shrink:0;line-height:1"></div>
+    <div style="flex:1;min-width:0">
+      <div id="n-title" style="font-size:12px;color:#C9A84C;font-weight:bold;margin-bottom:2px"></div>
+      <div id="n-body" style="font-size:12px;color:#c8bfdf;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    </div>
+    <button onclick="hideNotif()" style="background:none;border:none;color:#5a4e7a;font-size:18px;cursor:pointer;flex-shrink:0;padding:0;touch-action:manipulation">&#x2715;</button>
+  </div>
+</div>
+
+<!-- Auth bar (visible when logged in) -->
+<div id="auth-bar">
+  <div id="auth-bar-inner">
+    <div id="auth-greeting" style="font-size:11px;color:#C9A84C;letter-spacing:.06em"></div>
+    <div style="display:flex;gap:6px">
+      <button onclick="manageSubscription()" style="font-size:11px;padding:4px 10px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:20px;color:#C9A84C;cursor:pointer;font-family:inherit;touch-action:manipulation">Manage</button>
+      <button onclick="doLogout()" style="font-size:11px;padding:4px 10px;background:none;border:1px solid rgba(255,255,255,0.1);border-radius:20px;color:#5a4e7a;cursor:pointer;font-family:inherit;touch-action:manipulation">Logout</button>
+    </div>
+  </div>
+</div>
+
+<!--
+  PREVIEW MODE BAR
+  Visible only when URL contains ?preview=true
+  Use this to test tiers without paying
+-->
+<div id="preview-bar">
+  <div id="preview-bar-inner">
+    <span style="font-size:10px;color:#b085e8;letter-spacing:.1em;text-transform:uppercase;flex-shrink:0">Preview</span>
+    <button class="prev-btn active" id="pb-free" onclick="setPreviewTier('free')">Free</button>
+    <button class="prev-btn" id="pb-seeker" onclick="setPreviewTier('seeker')">Seeker</button>
+    <button class="prev-btn" id="pb-initiate" onclick="setPreviewTier('initiate')">Initiate</button>
+  </div>
+</div>
+
+<div id="stars"></div>
+<div id="app">
+  <div style="text-align:center;padding:8px 0 12px">
+    <div style="font-size:11px;letter-spacing:.26em;color:#C9A84C;text-transform:uppercase">Viriditas Hora</div>
+    <div style="font-size:10px;color:#3a3060;font-style:italic;margin-top:2px">The Living Power of the Hour</div>
+    <div id="clock" style="font-size:11px;color:#5a4e7a;margin-top:3px"></div>
+  </div>
+  <div id="hora-tab"></div>
+  <div id="ruling-tab" style="display:none"></div>
+  <div id="moon-tab" style="display:none"></div>
+  <div id="journal-tab" style="display:none"></div>
+</div>
+
+<nav id="nav">
+  <button class="nav-btn active" id="btn-hora" onclick="switchTab('hora')">
+    <div class="nav-icon-wrap"><span class="nav-icon">&#8635;</span></div>
+    <span class="nav-lbl">Hora</span>
+  </button>
+  <button class="nav-btn" id="btn-ruling" onclick="switchTab('ruling')">
+    <div class="nav-icon-wrap"><span class="nav-icon">&#9728;</span></div>
+    <span class="nav-lbl">Ruling</span>
+  </button>
+  <button class="nav-btn" id="btn-moon" onclick="switchTab('moon')">
+    <div class="nav-icon-wrap"><span class="nav-icon">&#9789;</span></div>
+    <span class="nav-lbl">Moon</span>
+  </button>
+  <button class="nav-btn" id="btn-journal" onclick="switchTab('journal')">
+    <div class="nav-icon-wrap"><span class="nav-icon">&#10022;</span></div>
+    <span class="nav-lbl">Journal</span>
+  </button>
+</nav>
+
+<script>
+/*
+ * VIRIDITAS HORA
+ * =============================================================
+ * MEMBERSTACK KEY: Replace app_cmpdnbbm6001y0tnj1qmhe0pe below
+ * PREVIEW MODE:   Add ?preview=true to URL to test tiers
+ * PLAN IDs:       Seeker  = pln_seeker-tu190n10
+ *                 Initiate = pln_initiate-a8220jl9
+ * =============================================================
+ */
+
+// Stars
+(function(){
+  var sc=document.getElementById('stars');
+  for(var i=0;i<50;i++){
+    var s=document.createElement('div');s.className='star';
+    var sz=Math.random()>.82?2:1;
+    s.style.cssText='width:'+sz+'px;height:'+sz+'px;background:#fff;left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;opacity:'+(Math.random()*.45+.05).toFixed(2)+';--d:'+(2+Math.random()*3.5).toFixed(1)+'s;--delay:'+(Math.random()*4).toFixed(1)+'s;';
+    sc.appendChild(s);
+  }
+})();
+
+// =============================================================
+// PREVIEW MODE — hidden from normal users
+// Activate: add ?preview=true to URL
+// =============================================================
+var IS_PREVIEW = window.location.search.indexOf('preview=true') > -1;
+var previewTier = 'free';
+
+if(IS_PREVIEW){
+  document.getElementById('preview-bar').classList.add('show');
+  // Shift nav up so preview bar doesnt overlap
+  document.getElementById('nav').style.bottom = '48px';
+}
+
+function setPreviewTier(t){
+  if(!IS_PREVIEW) return;
+  previewTier = t;
+  // Update button styles
+  ['free','seeker','initiate'].forEach(function(tier){
+    var btn = document.getElementById('pb-'+tier);
+    if(btn) btn.className = 'prev-btn' + (tier===t?' active':'');
+  });
+  renderAll();
+}
+
+// =============================================================
+// TIER STATE
+// Source: Memberstack (production) OR preview mode (testing)
+// =============================================================
+var currentTier = 'free';
+var currentMember = null;
+
+function getTier(){
+  if(IS_PREVIEW) return previewTier;
+  return currentTier;
+}
+
+var PLAN_IDS = {
+  seeker: 'pln_seeker-tu190n10',
+  initiate: 'pln_initiate-a8220jl9'
+};
+
+// =============================================================
+// PLANET DATA
+// =============================================================
+var CHALDEAN=['Saturn','Jupiter','Mars','Sun','Venus','Mercury','Moon'];
+var DAY_IDX=[3,6,2,5,1,4,0];
+var DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+var P={
+  Saturn:{sym:'\u2644',col:'#9B8560',energy:'Discipline, exposure and endings',bestFor:'Breaking cycles, banishing negative energy, exposing hidden enemies and releasing what no longer serves you',psalms:['Psalm 10','Psalm 35','Psalm 52'],candle:'Black or dark blue',herb:'Hyssop',oil:'Myrrh',crystal:'Black Tourmaline',sacredName:'Tzaphkiel',angel_day:'Cassiel',angel_hour:'Cassiel',ritual_basic:'Light a black candle. Pray your psalm aloud. Name what you are releasing. Let the candle burn for one full hour.',ritual_adv:'Anoint a black candle with myrrh. Place hyssop beside it. Call upon Cassiel. Speak all three psalms invoking Tzaphkiel. Declare what is ended. Seal with silence.',notif:'Best for releasing, banishing and breaking cycles',pairs:[{aff:'I release what no longer belongs in my life with grace and without guilt.',act:'Write one thing you are releasing today and throw it away.'},{aff:'My boundaries are an act of self-respect not selfishness.',act:'Say no to one thing today without explaining yourself.'},{aff:'Every ending in my life is making room for something I have not yet imagined.',act:'Close one tab or app that is weighing on you right now.'},{aff:'I am not behind. I am exactly where my journey requires me to be.',act:'Sit in complete silence for 60 seconds before you check your phone.'},{aff:'I do not carry what was never mine to carry.',act:'Tidy one small corner of your space right now.'},{aff:'Discipline is how I love myself when motivation is gone.',act:'Do the one thing on your list you have been avoiding.'},{aff:'What I release tonight cannot return without my permission.',act:'Turn your phone face down for the next ten minutes.'},{aff:'I trust the timing of my life even when I do not understand it.',act:'Take three slow breaths before responding to anything today.'},{aff:'I am protected by everything I have survived and released.',act:'Drink a full glass of water slowly and intentionally.'},{aff:'My past is not a prison. It is proof that I am still here.',act:'Go to bed 30 minutes earlier than usual tonight.'}]},
+  Jupiter:{sym:'\u2643',col:'#C9A84C',energy:'Expansion, abundance and divine favor',bestFor:'Attracting abundance, opening doors, financial blessings and favor with those in authority',psalms:['Psalm 65','Psalm 72','Psalm 23'],candle:'Green or gold',herb:'Cinnamon',oil:'Frankincense',crystal:'Citrine',sacredName:'Tzadkiel',angel_day:'Sachiel',angel_hour:'Sachiel',ritual_basic:'Light a green candle. Pray your psalm aloud. Speak what you are calling in. Let the flame carry it.',ritual_adv:'Anoint a gold candle with frankincense. Place cinnamon beside it. Call upon Sachiel. Speak all three psalms invoking Tzadkiel. Declare every door open. Seal with gratitude.',notif:'Best for abundance, open doors and divine favor',pairs:[{aff:'Abundance is not something I chase. It is something I attract.',act:'Write down one thing you are calling into your life and read it aloud.'},{aff:'Every door that closed was protecting me from a room I did not belong in.',act:'Walk a slightly different route today to signal openness to new paths.'},{aff:'I am allowed to want more and I am allowed to receive it.',act:'Do one generous thing today without being asked.'},{aff:'Opportunities are always moving in my direction.',act:'Open a window and let fresh air move through your space.'},{aff:'My growth is not threatening. It is inevitable.',act:'Spend five minutes writing about what your life looks like when it all works out.'},{aff:'I do not shrink to make others comfortable with my expansion.',act:'Compliment someone genuinely and mean every word.'},{aff:'Luck is energy and my energy is magnetic right now.',act:'Touch something gold or green and set one clear intention.'},{aff:'I am walking into the best chapter of my life and I am ready.',act:'Say thank you for something before you look at your phone.'},{aff:'What is meant for me will not pass me by.',act:'Put cinnamon in your drink or on your food today.'},{aff:'I am open to receiving in ways I have not yet considered.',act:'Smile at someone today. Energy moves in both directions.'}]},
+  Mars:{sym:'\u2642',col:'#C0392B',energy:'Courage, strength and victory',bestFor:'Protection, spiritual warfare, legal matters, court cases and commanding victory over what opposes you',psalms:['Psalm 91','Psalm 35','Psalm 121'],candle:'Red or orange',herb:'Rosemary',oil:"Dragon's Blood",crystal:'Red Jasper',sacredName:'Kamael',angel_day:'Samael',angel_hour:'Samael',ritual_basic:'Light a red candle. Pray your psalm aloud. Declare your protection. You are not begging. You are commanding.',ritual_adv:"Anoint a red candle with dragon's blood. Place rosemary beside it. Call upon Samael. Speak all three psalms invoking Kamael. Declare every enemy silenced. Seal with authority.",notif:'Best for protection, courage and victory',pairs:[{aff:'I act before I feel ready because readiness is a feeling I create.',act:'Do the hardest thing on your list right now before anything else.'},{aff:'I am not afraid of the battle. I was built for it.',act:'Take a cold splash of water on your face and feel fully alert.'},{aff:'My courage does not need anyone to approve it.',act:'Send the message you have been sitting on.'},{aff:'I protect my energy the way a warrior protects what matters most.',act:'Stand outside for five minutes and breathe deeply.'},{aff:'Every obstacle in my path is proof that something worth having is ahead.',act:'Take one physical step toward a goal today. Any step counts.'},{aff:'I do not wait to be chosen. I choose myself first.',act:'Make the call you have been avoiding.'},{aff:'My strength is not loud. It is consistent.',act:'Do 10 quick movements right now. Any exercise works.'},{aff:'I finish what I start because I respect my own word.',act:'Walk with your shoulders back and your head up all day.'},{aff:'I am dangerous to every force that has underestimated me.',act:'Speak your intention aloud with full conviction once.'},{aff:'Action is my prayer. Movement is my answer.',act:'Stretch your body fully and declare one thing you will complete today.'}]},
+  Sun:{sym:'\u2609',col:'#E8A020',energy:'Success, power and recognition',bestFor:'Career advancement, confidence, leadership, visibility and stepping fully into your divine purpose',psalms:['Psalm 19','Psalm 8','Psalm 118'],candle:'Yellow or gold',herb:'Bay Leaf',oil:'Frankincense',crystal:'Sunstone',sacredName:'Michael',angel_day:'Michael',angel_hour:'Michael',ritual_basic:'Light a gold candle. Pray your psalm aloud. Declare your purpose. Speak as one who already walks in it.',ritual_adv:'Anoint a gold candle with frankincense. Write your name on a bay leaf beside the flame. Call upon Michael. Speak all three psalms. Step into your authority. Seal with declaration.',notif:'Best for success, visibility and divine purpose',pairs:[{aff:'I do not dim my light to make anyone else comfortable.',act:'Wear something that makes you feel powerful today.'},{aff:'My presence is powerful even before I say a word.',act:'Walk into the next room like you already belong there.'},{aff:'I am worthy of the success I have been afraid to pursue.',act:'Write your name on paper and circle it. Claim your space.'},{aff:'I show up fully as myself and that is enough.',act:'Tell someone one thing you are genuinely proud of today.'},{aff:'Everything I need to succeed is already inside me.',act:'Stand in sunlight for five minutes and let it hit your face.'},{aff:'I radiate confidence because I know who I am.',act:'Look in the mirror and say your own name with full confidence.'},{aff:'I do not compete. I occupy my own lane completely.',act:'Do one thing today purely because you are good at it.'},{aff:'My identity does not require anyone to validate it.',act:'Sit up straight right now and take up all the space you deserve.'},{aff:'I was not born to blend in. I was born to stand out.',act:'Laugh out loud at least once today. Fully and freely.'},{aff:'Today I step into who I have always been afraid to fully become.',act:'Eat something nourishing that your body is genuinely asking for.'}]},
+  Venus:{sym:'\u2640',col:'#D4387A',energy:'Love, harmony and sweetness',bestFor:'Attracting love, healing relationships, sweetening your aura and drawing good people toward you',psalms:['Psalm 45','Psalm 23','Psalm 65'],candle:'Pink or rose',herb:'Rose Petals',oil:'Rose Oil',crystal:'Rose Quartz',sacredName:'Haniel',angel_day:'Anael',angel_hour:'Anael',ritual_basic:'Light a pink candle. Rub rose oil on your hands. Pray your psalm aloud. Speak what you are calling into your relationships.',ritual_adv:'Anoint a pink candle with rose oil. Place rose petals around it. Call upon Anael. Speak all three psalms invoking Haniel. Declare your heart open and your aura sweetened. Seal with gratitude.',notif:'Best for love, healing and sweetening your aura',pairs:[{aff:'I attract love because I am love. Not because I perform it.',act:'Apply your favorite scent slowly and let yourself enjoy it.'},{aff:'I deserve relationships that feel as good as they look.',act:'Send a loving message to someone you genuinely appreciate right now.'},{aff:'Beauty lives in me and it does not require anyone to confirm it.',act:'Look in the mirror and find one thing you love about yourself today.'},{aff:'I release the version of love that required me to lose myself.',act:'Put flowers or something beautiful somewhere in your space.'},{aff:'My aura is sweet, magnetic and impossible to ignore.',act:'Rub a sweet oil on your wrists and breathe it in slowly.'},{aff:'I am worthy of being chosen consistently and without conditions.',act:'Do one thing purely for your own pleasure today.'},{aff:'Harmony is my natural state. I return to it easily.',act:'Play music that makes you feel beautiful and let it move through you.'},{aff:'I give love freely and I receive it just as freely.',act:'Touch something soft and be fully present in the sensation.'},{aff:'Everything beautiful is drawn toward my energy.',act:'Buy yourself one small beautiful thing today.'},{aff:'I no longer settle for love that only shows up halfway.',act:'Eat or drink something you genuinely love without any guilt.'}]},
+  Mercury:{sym:'\u263f',col:'#8E44AD',energy:'Communication, clarity and truth',bestFor:'Contracts, clarity of mind, breaking confusion, speaking truth and cutting through deception',psalms:['Psalm 12','Psalm 19','Psalm 34'],candle:'Yellow or light blue',herb:'Lavender',oil:'Eucalyptus',crystal:'Blue Lace Agate',sacredName:'Raphael',angel_day:'Raphael',angel_hour:'Raphael',ritual_basic:'Light a blue candle. Pray your psalm aloud. Declare confusion broken and truth restored.',ritual_adv:'Anoint a blue candle with eucalyptus. Place lavender beside it. Call upon Raphael. Speak all three psalms. Declare every lie exposed and every door of clarity opened. Seal with stillness.',notif:'Best for clarity, truth and breaking confusion',pairs:[{aff:'My words carry power and I choose them with intention.',act:'Say exactly what you mean in one conversation today. No over explaining.'},{aff:'I communicate my needs clearly and without apology.',act:'Send the message or email you have been sitting on.'},{aff:'My mind is sharp, clear and working in my favor.',act:'Write three thoughts down before you look at your phone.'},{aff:'The right words come to me at exactly the right moment.',act:'Write the idea that keeps coming to you before it fades.'},{aff:'I release mental confusion and welcome clarity in its place.',act:'Take five minutes away from all screens in complete silence.'},{aff:'My ideas are valuable and the world benefits from hearing them.',act:'Read one paragraph of something that challenges or inspires you.'},{aff:'I listen as powerfully as I speak.',act:'Put lavender near your workspace or dab it gently on your temples.'},{aff:'Every message I need to receive reaches me at the right time.',act:'Repeat one clear intention aloud three times before starting your day.'},{aff:'I speak truth with confidence and it opens every door I need.',act:'Make one decision you have been postponing and commit to it fully.'},{aff:'My mind is my greatest tool and I keep it clear and focused.',act:'Sip a warm drink slowly and let your thoughts settle.'}]},
+  Moon:{sym:'\u263d',col:'#A8B8C8',energy:'Intuition, emotions and cleansing',bestFor:'Spiritual cleansing, dream work, emotional healing, deepening intuition and releasing what no longer serves',psalms:['Psalm 51','Psalm 4','Psalm 61'],candle:'White or silver',herb:'Hyssop',oil:'Coconut Oil',crystal:'Moonstone',sacredName:'Gabriel',angel_day:'Gabriel',angel_hour:'Gabriel',ritual_basic:'Light a white candle. Pray your psalm aloud. Speak what you are releasing. Let the psalm wash it clean.',ritual_adv:'Anoint a white candle with coconut oil. Place hyssop beside it. Call upon Gabriel. Speak all three psalms. Declare your aura cleansed and spirit restored. Seal with silence and rest.',notif:'Best for cleansing, intuition and emotional healing',pairs:[{aff:'I trust what I feel even when I cannot explain it.',act:'Check in with yourself honestly. How do you actually feel right now?'},{aff:'My emotions are not weakness. They are information.',act:'Place your hand on your chest and take three slow deep breaths.'},{aff:'I give myself permission to heal at my own pace.',act:'Do one small thing just for yourself with no productivity attached.'},{aff:'My intuition has never lied to me and I am learning to listen to it first.',act:'Sit outside quietly for five minutes under the open sky.'},{aff:'I release what this day carried and I rest without guilt.',act:'Before bed write one thing you are releasing and one thing you are grateful for.'},{aff:'I am gentle with myself the way I would be gentle with someone I love.',act:'Take a shower and let the water wash the weight of the day off you.'},{aff:'My sensitivity is a gift. It means I feel everything deeply including joy.',act:'Stretch slowly and gently in whatever way your body is asking for.'},{aff:'I flow with life instead of forcing it.',act:'Drink a full glass of water and imagine it washing everything heavy away.'},{aff:'I am safe enough right now to let my guard down and breathe.',act:'Light a white candle or sit near warm soft light this evening.'},{aff:'Everything I need to heal is already moving through me.',act:'Place your bare feet on the ground for two minutes and just breathe.'}]}
+};
+
+var MOON_PHASES=[{n:'New Moon',s:'\uD83C\uDF11',m:'A fresh cycle begins. The energy is quiet but full of potential.',c:'#3a3660'},{n:'Waxing Crescent',s:'\uD83C\uDF12',m:'Growth energy is building. Small actions carry great weight now.',c:'#6a6890'},{n:'First Quarter',s:'\uD83C\uDF13',m:'Decisions and action. Push through resistance.',c:'#8B7FAE'},{n:'Waxing Gibbous',s:'\uD83C\uDF14',m:'Refine and strengthen. You are close. Keep going.',c:'#A898C4'},{n:'Full Moon',s:'\uD83C\uDF15',m:'Peak energy. Release what no longer serves. Illuminate the hidden.',c:'#D8D4EC'},{n:'Waning Gibbous',s:'\uD83C\uDF16',m:'Gratitude and reflection. Share the wisdom you have gained.',c:'#9888B8'},{n:'Last Quarter',s:'\uD83C\uDF17',m:'Let go deeply. Banish what has been draining you.',c:'#6a6890'},{n:'Waning Crescent',s:'\uD83C\uDF18',m:'Rest and restore. Prepare for the next cycle.',c:'#4a4470'}];
+
+var MOON_GUIDE={'New Moon':{title:'Plant Your Seeds',body:'The new moon is a time of stillness and intention. Write down what you want to call into your life this cycle. The energy is receptive right now.',action:'Light a white candle tonight and speak your intentions into the flame.'},'Waxing Crescent':{title:'Take the First Step',body:'Growth is beginning. The energy supports new starts and small brave actions. Do not wait for perfect conditions.',action:'Write one thing you will do today to move toward what you called in.'},'First Quarter':{title:'Push Through',body:'You may face resistance right now. That is a sign you are moving in the right direction. The first quarter moon supports decisions and breaking through what holds you back.',action:'Do the one thing you have been putting off. Do it today.'},'Waxing Gibbous':{title:'Refine and Strengthen',body:'You are close to what you have been building. Adjust, refine and strengthen your intentions. Gratitude is powerful right now.',action:'List three things already moving in the right direction.'},'Full Moon':{title:'Release and Illuminate',body:'The full moon reveals what has been hidden and amplifies everything including what needs to go. Use this energy to release, cleanse and complete.',action:'Write what you are releasing and burn or bury the paper tonight.'},'Waning Gibbous':{title:'Share and Reflect',body:'The harvest phase. Reflect on what this cycle brought you and share your gratitude.',action:'Tell someone something you are grateful for today.'},'Last Quarter':{title:'Let Go Deeply',body:'The most powerful time for banishing and releasing. The energy supports hard decisions, final endings and spiritual cleansing work.',action:'Cleanse your space today. Open the windows. Burn sage or hyssop.'},'Waning Crescent':{title:'Rest and Restore',body:'The final phase before the new cycle. Honor your lower energy. Rest is sacred.',action:'Give yourself permission to rest without guilt today.'}};
+
+var HERBS_DAY={Saturn:{n:'Hyssop',p:'Deep spiritual purification. Clears what has been sent against you.'},Jupiter:{n:'Cinnamon',p:'Draws abundance and favor. One of the oldest prosperity herbs known.'},Mars:{n:'Rosemary',p:'Protection and strength. Fortifies your spiritual armor.'},Sun:{n:'Bay Leaf',p:'Victory and recognition. Write your intention on it.'},Venus:{n:'Rose Petals',p:'Love, harmony and sweetness. Opens the heart.'},Mercury:{n:'Lavender',p:'Clarity and truth. Clears mental confusion.'},Moon:{n:'Mugwort',p:'Deep intuition and dream wisdom. Opens the inner eye.'}};
+
+var JOURNAL_PROMPTS={Saturn:['What is one habit or pattern you are ready to leave behind?','What would your life look like if the cycle you are stuck in finally broke?','What are you still carrying that was never yours to carry?','If you could release one thing tonight and never pick it back up, what would it be?','What are you holding onto out of fear rather than love?'],Jupiter:['What is one thing you want to call into your life this month?','What would you do differently if you truly believed abundance was meant for you?','What opportunity have you been too afraid to pursue?','What gift or skill are you underusing that could change your situation?','What does real prosperity look like in your life beyond just money?'],Mars:['What boundary have you been wanting to set that you keep talking yourself out of?','What would you do today if you knew for certain that you were protected?','What situation requires you to speak up and what is holding your voice back?','What are you tolerating right now that you know you deserve better than?','What would change if you treated protecting your peace as non-negotiable?'],Sun:['What is one thing you want to be known for and what is stopping you?','Where have you been waiting for permission that only you can give yourself?','What would you do with your life if you stopped being afraid of what people would think?','What are you most proud of that you have never allowed yourself to fully celebrate?','If you were completely honest with yourself right now, what do you know you are called to do?'],Venus:['What kind of love do you actually want and have you ever truly allowed yourself to receive it?','What do you wish the people closest to you understood about you?','When do you feel most loved and how often does that actually happen in your life?','What relationship needs an honest conversation that you have been putting off?','How are you doing at loving yourself right now?'],Mercury:['What is one conversation you have been avoiding that would bring immediate clarity?','What do you know to be true right now that you have not yet said out loud?','Where in your life are you not being fully honest?','What are you overcomplicating that is actually much simpler than you are making it?','If you could be completely honest with one person right now, what would you say?'],Moon:['What feeling have you been carrying this week that you have not given yourself permission to feel?','What does your gut tell you about a situation you have been overthinking?','What emotion keeps coming up for you lately and what is it trying to tell you?','What have you been carrying silently that you have not told anyone?','What does your spirit need most right now and are you giving it that?']};
+
+// State
+var sunData=null,currentPlanet=null,currentHourNum=1,isNight=false;
+var journalEntries=[],currentTab='hora',autoTimer=null,lastNotifPlanet=null,notifTimer=null;
+
+// Moon
+function getMoonPhase(d){
+  var ref=new Date('2026-05-16T03:00:00Z').getTime();
+  var b=((d.getTime()-ref)/86400000%29.530588861)/29.530588861;
+  if(b<0)b+=1;
+  var idx=Math.round(b*8)%8;
+  var ph=MOON_PHASES[idx];
+  return{n:ph.n,s:ph.s,m:ph.m,c:ph.c,illum:Math.round((1-Math.cos(b*2*Math.PI))/2*100)};
+}
+function getMoonSign(d){
+  var signs=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+  var syms=['\u2648','\u2649','\u264a','\u264b','\u264c','\u264d','\u264e','\u264f','\u2650','\u2651','\u2652','\u2653'];
+  var cols=['#C9784C','#6B8F71','#6B8FAF','#4C9090','#C9784C','#6B8F71','#6B8FAF','#4C9090','#C9784C','#6B8F71','#6B8FAF','#4C9090'];
+  var elems=['Fire','Earth','Air','Water','Fire','Earth','Air','Water','Fire','Earth','Air','Water'];
+  var ref=new Date('2026-05-16T03:00:00Z').getTime();
+  var i=((Math.floor(((d.getTime()-ref)/86400000/27.321661*12)+1)%12)+12)%12;
+  return{name:signs[i],sym:syms[i],col:cols[i],elem:elems[i]};
+}
+
+function getDayOfYear(){
+  var now=new Date();
+  return Math.floor((now.getTime()-new Date(now.getFullYear(),0,0).getTime())/86400000);
+}
+function getCurrentPair(planet,hourNum){
+  if(!planet||!P[planet])return null;
+  var pairs=P[planet].pairs;
+  return pairs[(getDayOfYear()+hourNum)%pairs.length];
+}
+function getDailyAffirmation(planet){
+  if(!planet||!P[planet])return '';
+  var pairs=P[planet].pairs;
+  return pairs[getDayOfYear()%pairs.length].aff;
+}
+function getRotatingPsalm(planet){
+  if(!P[planet])return '';
+  var week=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,1).getTime())/604800000);
+  return P[planet].psalms[week%3];
+}
+function getJournalPrompt(planet){
+  if(!JOURNAL_PROMPTS[planet])return '';
+  var prompts=JOURNAL_PROMPTS[planet];
+  return prompts[getDayOfYear()%prompts.length];
+}
+
+// Planetary hours
+function calcState(sr,ss){
+  try{
+    var now=new Date(),dow=now.getDay(),dIdx=DAY_IDX[dow];
+    var srMs=sr.getTime(),ssMs=ss.getTime(),nowMs=now.getTime();
+    if(nowMs>=srMs&&nowMs<ssMs){
+      isNight=false;
+      var hLen=(ssMs-srMs)/12;
+      var hNum=Math.min(12,Math.floor((nowMs-srMs)/hLen)+1);
+      currentHourNum=hNum;
+      currentPlanet=CHALDEAN[(dIdx+hNum-1)%7];
+    }else{
+      isNight=true;
+      var isBefore=nowMs<srMs;
+      var tmrDow=isBefore?dow:(dow+1)%7;
+      currentPlanet=CHALDEAN[DAY_IDX[tmrDow]];
+      currentHourNum=1;
+    }
+  }catch(e){currentPlanet='Sun';currentHourNum=1;isNight=false;}
+}
+
+function buildHourList(sr,ss,forTmr,showNight){
+  try{
+    var now=new Date();
+    var isBefSr=sunData&&now.getTime()<sunData.sr.getTime();
+    var targetDow=forTmr?(isBefSr?now.getDay():(now.getDay()+1)%7):now.getDay();
+    var dIdx=DAY_IDX[targetDow];
+    var baseSr=forTmr?new Date(sr.getTime()+86400000):sr;
+    var baseSs=forTmr?new Date(ss.getTime()+86400000):ss;
+    var srMs=baseSr.getTime(),ssMs=baseSs.getTime(),nowMs=now.getTime();
+    var hLen=(ssMs-srMs)/12;
+    var rows='';
+    for(var i=1;i<=12;i++){
+      var startMs=srMs+(i-1)*hLen;
+      var planet=CHALDEAN[(dIdx+i-1)%7];
+      var pp=P[planet];
+      var isCur=!isNight&&!forTmr&&i===currentHourNum;
+      var isPast=!forTmr&&nowMs>startMs+hLen;
+      var isFut=!isPast&&!isCur&&!forTmr;
+      var t=new Date(startMs).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      var cls='hr-row'+(isCur?' cur':'')+(isPast?' past':'')+(isFut?' fut':'');
+      rows+='<div class="'+cls+'"><span class="hr-n">'+i+'</span><span class="hr-t">'+(isFut?'--:--':t)+'</span><span class="hr-s" style="color:'+pp.col+'">'+pp.sym+'</span><span class="hr-p" style="color:'+(isCur?'#C9A84C':isPast?'#5a4e7a':'#c8bfdf')+'">'+planet+'</span>'+(isCur?'<span class="hr-badge">Now</span>':'')+'</div>';
+    }
+    if(showNight){
+      var nextSr=new Date(sr.getTime()+86400000);
+      var nhLen=(nextSr.getTime()-ss.getTime())/12;
+      rows+='<div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#6a5e8a;padding:10px 0 6px">Night Hours</div>';
+      for(var j=1;j<=12;j++){
+        var nStart=ss.getTime()+(j-1)*nhLen;
+        var nPlanet=CHALDEAN[(DAY_IDX[now.getDay()]+12+j-1)%7];
+        var npp=P[nPlanet];
+        var nIsCur=isNight&&j===currentHourNum;
+        var nIsPast=nowMs>nStart+nhLen;
+        var nT=new Date(nStart).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+        var nCls='hr-row'+(nIsCur?' cur':'')+(nIsPast?' past':'');
+        rows+='<div class="'+nCls+'"><span class="hr-n">'+j+'</span><span class="hr-t">'+nT+'</span><span class="hr-s" style="color:'+npp.col+'">'+npp.sym+'</span><span class="hr-p" style="color:'+(nIsCur?'#C9A84C':nIsPast?'#5a4e7a':'#c8bfdf')+'">'+nPlanet+'</span>'+(nIsCur?'<span class="hr-badge">Now</span>':'')+'</div>';
+      }
+    }else{
+      rows+='<div style="margin-top:10px;padding:12px;background:rgba(138,75,200,0.06);border:1px solid rgba(138,75,200,0.18);border-radius:10px;text-align:center"><div style="font-size:12px;color:#8060b8;margin-bottom:4px">Want tools for each hour?</div><div style="font-size:11px;color:#5a4e7a;margin-bottom:8px">Psalm, candle, herb, crystal and ritual updated every hour</div><button onclick="doSignup(\'seeker\')" style="font-size:11px;padding:6px 16px;background:rgba(138,75,200,0.12);border:1px solid rgba(138,75,200,0.25);border-radius:20px;color:#8060b8;cursor:pointer;font-family:inherit;touch-action:manipulation">Upgrade to Seeker</button></div>';
+    }
+    return rows;
+  }catch(e){return '';}
+}
+
+function fmtT(d){try{return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}catch(e){return '--:--';}}
+
+// Notifications
+function showNotif(planet,pair){
+  var p=P[planet];if(!p)return;
+  document.getElementById('n-sym').textContent=p.sym;
+  document.getElementById('n-sym').style.color=p.col;
+  document.getElementById('n-title').textContent=planet+' Hour';
+  document.getElementById('n-title').style.color=p.col;
+  document.getElementById('n-body').textContent=pair?pair.aff:p.notif;
+  var el=document.getElementById('notif');
+  el.classList.remove('hide');el.classList.add('show');
+  if(notifTimer)clearTimeout(notifTimer);
+  notifTimer=setTimeout(hideNotif,8000);
+}
+function hideNotif(){
+  var el=document.getElementById('notif');
+  el.classList.add('hide');
+  setTimeout(function(){el.classList.remove('show','hide');},350);
+}
+
+// Clock
+function updateClock(){
+  var el=document.getElementById('clock');
+  if(el){var now=new Date();el.textContent=DAYS[now.getDay()]+' \u00b7 '+now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+}
+function startRefresh(){
+  if(autoTimer)clearInterval(autoTimer);
+  autoTimer=setInterval(function(){
+    updateClock();
+    if(sunData){
+      var prev=currentPlanet;
+      calcState(sunData.sr,sunData.ss);
+      if(currentPlanet&&currentPlanet!==prev&&currentPlanet!==lastNotifPlanet){
+        lastNotifPlanet=currentPlanet;
+        var pair=getCurrentPair(currentPlanet,currentHourNum);
+        showNotif(currentPlanet,pair);
+      }
+      if(currentTab==='hora')renderHora();
+    }
+  },60000);
+}
+updateClock();startRefresh();
+
+// City list with exact coordinates
+var CITIES=[
+  {label:'-- NORTH AMERICA --',tz:null,lat:null,lng:null},
+  {label:'New York',tz:'America/New_York',lat:40.71,lng:-74.01},
+  {label:'Miami',tz:'America/New_York',lat:25.77,lng:-80.19},
+  {label:'Atlanta',tz:'America/New_York',lat:33.75,lng:-84.39},
+  {label:'Boston',tz:'America/New_York',lat:42.36,lng:-71.06},
+  {label:'Chicago',tz:'America/Chicago',lat:41.85,lng:-87.65},
+  {label:'Houston',tz:'America/Chicago',lat:29.76,lng:-95.37},
+  {label:'Dallas',tz:'America/Chicago',lat:32.78,lng:-96.80},
+  {label:'New Orleans',tz:'America/Chicago',lat:29.95,lng:-90.07},
+  {label:'Denver',tz:'America/Denver',lat:39.74,lng:-104.98},
+  {label:'Phoenix',tz:'America/Phoenix',lat:33.45,lng:-112.07},
+  {label:'Los Angeles',tz:'America/Los_Angeles',lat:34.05,lng:-118.24},
+  {label:'Las Vegas',tz:'America/Los_Angeles',lat:36.17,lng:-115.14},
+  {label:'Seattle',tz:'America/Los_Angeles',lat:47.61,lng:-122.33},
+  {label:'Toronto',tz:'America/Toronto',lat:43.65,lng:-79.38},
+  {label:'Vancouver',tz:'America/Vancouver',lat:49.25,lng:-123.12},
+  {label:'-- CARIBBEAN --',tz:null,lat:null,lng:null},
+  {label:'Jamaica',tz:'America/Jamaica',lat:17.99,lng:-76.79},
+  {label:'Trinidad',tz:'America/Port_of_Spain',lat:10.65,lng:-61.52},
+  {label:'Barbados',tz:'America/Barbados',lat:13.10,lng:-59.62},
+  {label:'Haiti',tz:'America/Port-au-Prince',lat:18.54,lng:-72.34},
+  {label:'Dominican Republic',tz:'America/Santo_Domingo',lat:18.47,lng:-69.90},
+  {label:'Bahamas',tz:'America/Nassau',lat:25.03,lng:-77.40},
+  {label:'-- UK & EUROPE --',tz:null,lat:null,lng:null},
+  {label:'London',tz:'Europe/London',lat:51.51,lng:-0.13},
+  {label:'Paris',tz:'Europe/Paris',lat:48.85,lng:2.35},
+  {label:'Amsterdam',tz:'Europe/Amsterdam',lat:52.37,lng:4.90},
+  {label:'Berlin',tz:'Europe/Berlin',lat:52.52,lng:13.40},
+  {label:'-- AFRICA --',tz:null,lat:null,lng:null},
+  {label:'Lagos',tz:'Africa/Lagos',lat:6.52,lng:3.38},
+  {label:'Accra',tz:'Africa/Accra',lat:5.56,lng:-0.20},
+  {label:'Nairobi',tz:'Africa/Nairobi',lat:-1.29,lng:36.82},
+  {label:'Johannesburg',tz:'Africa/Johannesburg',lat:-26.20,lng:28.04},
+  {label:'-- MIDDLE EAST --',tz:null,lat:null,lng:null},
+  {label:'Dubai',tz:'Asia/Dubai',lat:25.20,lng:55.27},
+  {label:'Riyadh',tz:'Asia/Riyadh',lat:24.69,lng:46.72},
+  {label:'-- ASIA & PACIFIC --',tz:null,lat:null,lng:null},
+  {label:'Mumbai',tz:'Asia/Kolkata',lat:19.08,lng:72.88},
+  {label:'Singapore',tz:'Asia/Singapore',lat:1.35,lng:103.82},
+  {label:'Tokyo',tz:'Asia/Tokyo',lat:35.69,lng:139.69},
+  {label:'Sydney',tz:'Australia/Sydney',lat:-33.87,lng:151.21}
+];
+
+function fetchSun(lat,lng,cb){
+  fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lng+'&daily=sunrise,sunset&timezone=auto&forecast_days=1')
+    .then(function(r){if(!r.ok)throw 0;return r.json();})
+    .then(function(d){
+      if(d.daily&&d.daily.sunrise[0])cb(new Date(d.daily.sunrise[0]),new Date(d.daily.sunset[0]),null);
+      else cb(null,null,'Could not read sun times.');
+    }).catch(function(){cb(null,null,'Network error. Please check your connection.');});
+}
+function useGeo(){
+  showLoad('hora-tab','Reading your position...');
+  if(!navigator.geolocation){showErr('hora-tab','Location not supported. Please select your city below.');return;}
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      fetchSun(pos.coords.latitude,pos.coords.longitude,function(sr,ss,err){
+        if(err){showErr('hora-tab',err);return;}
+        sunData={sr:sr,ss:ss};calcState(sr,ss);lastNotifPlanet=currentPlanet;renderHora();
+      });
+    },
+    function(){currentPlanet=null;renderHora();},
+    {timeout:12000,maximumAge:600000}
+  );
+}
+function useCity(){
+  var sel=document.getElementById('tz-sel');
+  if(!sel||!sel.value){alert('Please select your city first.');return;}
+  var parts=sel.value.split('|');
+  var lat=parseFloat(parts[0]),lng=parseFloat(parts[1]);
+  if(isNaN(lat)||isNaN(lng)){alert('Please select your city first.');return;}
+  showLoad('hora-tab','Calculating your planetary hours...');
+  fetchSun(lat,lng,function(sr,ss,err){
+    if(err){showErr('hora-tab',err);return;}
+    sunData={sr:sr,ss:ss};calcState(sr,ss);lastNotifPlanet=currentPlanet;renderHora();
+  });
+}
+function resetLoc(){sunData=null;currentPlanet=null;renderHora();}
+function refreshNow(){
+  if(!sunData){renderHora();return;}
+  showLoad('hora-tab','Refreshing...');
+  setTimeout(function(){calcState(sunData.sr,sunData.ss);renderHora();},300);
+}
+function showLoad(id,msg){var el=document.getElementById(id);if(el)el.innerHTML='<div style="text-align:center;padding:50px 0"><div class="floatanim" style="font-size:42px;color:#C9A84C;margin-bottom:14px">&#10022;</div><div style="font-size:13px;color:#c8bfdf">'+msg+'</div></div>';}
+function showErr(id,msg){var el=document.getElementById(id);if(el)el.innerHTML='<div style="background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.22);border-radius:14px;padding:16px;margin-bottom:12px;font-size:14px;color:#e8a090;line-height:1.65">'+msg+'</div><button class="btn" onclick="renderHora()">Try Again</button>';}
+
+// =============================================================
+// MEMBERSTACK AUTH
+// =============================================================
+function doSignup(tierKey){
+  var planId=PLAN_IDS[tierKey];
+  if(window.$memberstackDom){
+    window.$memberstackDom.openModal('SIGNUP',{planId:planId})
+      .then(function(){checkMembership();})
+      .catch(function(){});
+  }
+}
+function doLogin(){
+  if(window.$memberstackDom){
+    window.$memberstackDom.openModal('LOGIN')
+      .then(function(){checkMembership();})
+      .catch(function(){});
+  }
+}
+function doLogout(){
+  if(window.$memberstackDom){
+    window.$memberstackDom.logout().then(function(){
+      currentMember=null;currentTier='free';
+      updateAuthBar();renderAll();
+    });
+  }
+}
+function manageSubscription(){
+  if(window.$memberstackDom)window.$memberstackDom.openModal('PROFILE');
+}
+function checkMembership(){
+  if(!window.$memberstackDom)return;
+  window.$memberstackDom.getCurrentMember().then(function(r){
+    if(!r||!r.data){currentMember=null;currentTier='free';updateAuthBar();return;}
+    currentMember=r.data;
+    var plans=r.data.planConnections||[];
+    if(plans.some(function(p){return p.planName==='Initiate';})){currentTier='initiate';}
+    else if(plans.some(function(p){return p.planName==='Seeker';})){currentTier='seeker';}
+    else{currentTier='free';}
+    updateAuthBar();renderAll();
+  }).catch(function(){currentTier='free';updateAuthBar();});
+}
+function updateAuthBar(){
+  var bar=document.getElementById('auth-bar');
+  var app=document.getElementById('app');
+  var greeting=document.getElementById('auth-greeting');
+  if(!bar)return;
+  if(currentMember&&!IS_PREVIEW){
+    bar.classList.add('show');
+    app.classList.add('has-bar');
+    var email=currentMember.auth&&currentMember.auth.email?currentMember.auth.email:'';
+    var name=email?email.split('@')[0]:'Member';
+    var tierLabel=currentTier==='initiate'?'Initiate':currentTier==='seeker'?'Seeker':'Free';
+    if(greeting)greeting.textContent=name+' \u00b7 '+tierLabel;
+  }else{
+    bar.classList.remove('show');
+    app.classList.remove('has-bar');
+  }
+}
+
+// =============================================================
+// HORA TAB
+// =============================================================
+function renderHora(){
+  var tab=document.getElementById('hora-tab');if(!tab)return;
+  var tier=getTier();
+  var isPaid=tier==='seeker'||tier==='initiate';
+  var isInit=tier==='initiate';
+
+  if(!currentPlanet){
+    var cityOpts=CITIES.map(function(c){
+      if(!c.tz)return '<option disabled style="color:#C9A84C;background:#0f0d24;font-weight:bold">'+c.label+'</option>';
+      return '<option value="'+c.lat+'|'+c.lng+'" style="color:#e8e0d0;background:#0f0d24">'+c.label+'</option>';
+    }).join('');
+    tab.innerHTML='<div style="text-align:center;padding:18px 0 14px"><div class="floatanim" style="font-size:52px;color:#C9A84C;margin-bottom:12px;line-height:1">&#10022;</div><div style="font-size:18px;color:#e8e0d0;margin-bottom:8px">Welcome to Viriditas Hora</div><div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.75">The living power of the hour<br>begins with knowing where you are.</div></div>'
+      +'<div class="card" style="border-color:rgba(201,168,76,0.35);background:rgba(201,168,76,0.025)"><span class="lbl">Allow Location</span><div style="font-size:14px;color:#c8bfdf;line-height:1.85;margin-bottom:14px">For the most accurate planetary hours allow location access.<br><br><em style="color:#e8e0d0">Your location is never stored or shared.</em></div><button class="btn" onclick="useGeo()" style="font-size:13px;padding:14px;border-color:rgba(201,168,76,0.6);margin-bottom:10px">&#10022; &nbsp;Allow Location</button></div>'
+      +'<div class="card" style="border-color:rgba(138,75,200,0.3)"><span class="lbl">Or Select Your City</span><div style="font-size:13px;color:#9d8fbf;margin-bottom:12px;line-height:1.6">If location is blocked by TikTok or Instagram select your city below.</div><div style="position:relative;margin-bottom:12px"><select id="tz-sel" style="width:100%;background:#0f0d24;border:1px solid rgba(138,75,200,0.3);border-radius:10px;color:#e8e0d0;font-family:inherit;font-size:14px;padding:13px 40px 13px 14px;-webkit-appearance:none;appearance:none;"><option value="">Select your city...</option>'+cityOpts+'</select><div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#C9A84C;font-size:16px;pointer-events:none">&#9660;</div></div><button class="btn btn-s" onclick="useCity()" style="font-size:13px;padding:14px">&#9789; &nbsp;Calculate My Hours</button></div>'
+      +'<div style="text-align:center;margin-top:8px"><button onclick="doLogin()" style="font-size:12px;color:#9d8fbf;background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline;touch-action:manipulation">Already a member? Log in</button></div>';
+    return;
+  }
+
+  var p=P[currentPlanet];
+  var dow=new Date().getDay();
+  var dayRuler=CHALDEAN[DAY_IDX[dow]];
+  var dayP=P[dayRuler];
+  var pair=getCurrentPair(currentPlanet,currentHourNum);
+  var hourList=sunData?buildHourList(sunData.sr,sunData.ss,false,isPaid):'';
+  var tmrList=sunData&&isNight?buildHourList(sunData.sr,sunData.ss,true,isPaid):'';
+
+  var heroHTML='';
+  if(!isNight){
+    heroHTML='<div class="planet-pulse" style="font-size:70px;line-height:1;color:'+p.col+';text-shadow:0 0 50px '+p.col+'60;margin-bottom:8px">'+p.sym+'</div><div style="font-size:22px;color:#e8e0d0;margin-bottom:4px">'+currentPlanet+' Hour</div><div style="font-size:13px;color:#9d8fbf;font-style:italic;margin-bottom:14px">'+p.energy+'</div><div style="background:'+p.col+'12;border-radius:11px;padding:12px 14px;text-align:left;margin-bottom:10px"><div style="font-size:10px;letter-spacing:.12em;color:'+p.col+';text-transform:uppercase;margin-bottom:4px">Best used for</div><div style="font-size:13px;color:#c8bfdf;line-height:1.6">'+p.bestFor+'</div></div>'+(!isPaid?'<div style="font-size:11px;color:#4a3e6a;font-style:italic">Deeper tools and rituals unlock with Seeker</div>':'');
+  }else{
+    heroHTML='<div style="font-size:46px;margin-bottom:10px;line-height:1">&#9789;</div><div style="font-size:18px;color:#e8e0d0;margin-bottom:6px">Night Hours</div><div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.65;margin-bottom:14px">'+(isPaid?'Night hours active for your tier.':'Night hours are reserved for Seeker members.')+'<br><br>Coming at sunrise &mdash; <strong style="color:'+p.col+'">'+p.sym+' '+currentPlanet+' Hour</strong></div>'+(!isPaid?'<button onclick="doSignup(\'seeker\')" style="padding:9px 18px;background:rgba(138,75,200,0.1);border:1px solid rgba(138,75,200,0.28);border-radius:20px;color:#8060b8;font-size:12px;cursor:pointer;font-family:inherit;touch-action:manipulation">Upgrade to Seeker</button>':'');
+  }
+
+  // Energy block - always visible
+  var energyBlock='';
+  if(pair){
+    energyBlock='<div style="background:linear-gradient(135deg,'+p.col+'18,rgba(8,4,20,0.7));border:1px solid '+p.col+'40;border-radius:16px;padding:20px;margin-bottom:12px"><div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:'+p.col+';margin-bottom:12px">This Planetary Hour\'s Affirmation</div><div style="font-size:15px;color:#e8e0d0;font-style:italic;line-height:1.75;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.08)">&ldquo;'+pair.aff+'&rdquo;</div><div style="display:flex;align-items:flex-start;gap:10px"><div style="font-size:20px;flex-shrink:0;line-height:1.2;margin-top:1px">&#127807;</div><div><div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+p.col+';margin-bottom:5px;opacity:0.8">Do this now</div><div style="font-size:13px;color:#c8bfdf;line-height:1.65">'+pair.act+'</div></div></div></div>';
+  }
+
+  // Paid content
+  var paidCard='';
+  if(isPaid){
+    var tc=isInit?'rgba(201,168,76,0.45)':'rgba(138,75,200,0.4)';
+    var tb=isInit?'rgba(201,168,76,0.03)':'rgba(138,75,200,0.04)';
+    var tv=isInit?'#C9A84C':'#b085e8';
+    paidCard='<div class="card" style="border-color:'+tc+';background:'+tb+'"><span class="lbl" style="color:'+tv+'">'+(isInit?'Initiate':'Seeker')+' &mdash; '+currentPlanet+' Hour</span><div class="row"><span class="row-l">&#128214; Psalms</span><span class="row-r" style="color:'+tv+';font-size:12px">'+p.psalms.join(' &middot; ')+'</span></div><div class="row"><span class="row-l">&#10022; Sacred Name</span><span class="row-r" style="color:'+tv+';font-size:12px">'+p.sacredName+'</span></div>'+(isInit?'<div class="row"><span class="row-l">&#128124; Angel of Day</span><span class="row-r" style="font-size:12px">'+p.angel_day+'</span></div><div class="row"><span class="row-l">&#128124; Angel of Hour</span><span class="row-r" style="font-size:12px">'+p.angel_hour+'</span></div>':'')+'<div class="row"><span class="row-l">&#128142; Crystal</span><span class="row-r">'+p.crystal+'</span></div><div class="row"><span class="row-l">&#127807; Oil</span><span class="row-r">'+p.oil+'</span></div><div style="margin-top:12px;background:'+(isInit?'rgba(201,168,76,0.06)':'rgba(138,75,200,0.08)')+';border-radius:10px;padding:12px"><div style="font-size:10px;letter-spacing:.12em;color:'+tv+';text-transform:uppercase;margin-bottom:6px">'+(isInit?'Advanced':'Basic')+' Ritual</div><div style="font-size:13px;color:#c8bfdf;line-height:1.65">'+(isInit?p.ritual_adv:p.ritual_basic)+'</div></div></div>';
+  }
+
+  // Upgrade cards for free users
+  var upgradeCards='';
+  if(!isPaid){
+    upgradeCards='<div class="cs-card cs-s"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px"><div><div style="font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#b085e8;margin-bottom:4px">Seeker</div><div style="font-size:18px;color:#e8e0d0;margin-bottom:2px">$4.99<span style="font-size:12px;color:#5a4e7a"> / month</span></div><div style="font-size:12px;color:#9d8fbf;font-style:italic">Healing &amp; Protecting your energy</div></div><div style="font-size:22px;color:#b085e8;opacity:0.4;flex-shrink:0;line-height:1">&#9770;</div></div><div style="margin-bottom:12px"><div class="feat"><span style="width:18px;text-align:center;flex-shrink:0">&#9789;</span><span class="feat-t">All 24 planetary hours &mdash; day and night</span></div><div class="feat"><span style="width:18px;text-align:center;flex-shrink:0">&#128214;</span><span class="feat-t">Psalm, sacred name, crystal and ritual per hour</span></div><div class="feat"><span style="width:18px;text-align:center;flex-shrink:0">&#128220;</span><span class="feat-t">Three daily rituals &mdash; cleanse, protect and sweeten</span></div><div class="feat"><span style="width:18px;text-align:center;flex-shrink:0">&#127807;</span><span class="feat-t">Full herb and oil system per hour</span></div></div><button onclick="doSignup(\'seeker\')" style="width:100%;padding:11px;background:rgba(138,75,200,0.15);border:1px solid rgba(138,75,200,0.35);border-radius:12px;color:#b085e8;font-size:12px;letter-spacing:.05em;cursor:pointer;font-family:inherit;text-transform:uppercase;touch-action:manipulation">Unlock Seeker &mdash; $4.99 / month</button></div>'
+      +'<div class="cs-card cs-i"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px"><div><div style="font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#C9A84C;margin-bottom:4px">Initiate</div><div style="font-size:18px;color:#e8e0d0;margin-bottom:2px">$9.99<span style="font-size:12px;color:#5a4e7a"> / month</span></div><div style="font-size:12px;color:#9d8fbf;font-style:italic">Controlling &amp; Utilizing your energy</div></div><div style="font-size:22px;color:#C9A84C;opacity:0.4;flex-shrink:0;line-height:1">&#10022;</div></div><div style="margin-bottom:12px"><div class="feat"><span style="width:18px;text-align:center;flex-shrink:0">&#10022;</span><span class="feat-t">Sacred name for all three psalms every hour</span></div><div class="feat"><span style="width:18px;text-align:center;flex-shrink:0">&#128124;</span><span class="feat-t">Ruling angel of the day and hour</span></div><div class="feat"><span style="width:18px;text-align:center;flex-shrink:0">&#9800;</span><span class="feat-t">Birth chart integration and personalized rituals</span></div><div class="feat"><span style="width:18px;text-align:center;flex-shrink:0">&#128202;</span><span class="feat-t">Emotional pattern tracking and monthly report</span></div></div><button onclick="doSignup(\'initiate\')" style="width:100%;padding:11px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);border-radius:12px;color:#C9A84C;font-size:12px;letter-spacing:.05em;cursor:pointer;font-family:inherit;text-transform:uppercase;touch-action:manipulation">Unlock Initiate &mdash; $9.99 / month</button></div>';
+  }
+
+  tab.innerHTML='<div class="fade-in">'
+    +'<div style="background:rgba(255,255,255,0.03);border:1px solid '+p.col+'30;border-radius:17px;padding:20px 16px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden">'
+    +'<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,'+p.col+'0c 0%,transparent 65%);pointer-events:none"></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:10px;letter-spacing:.1em;color:#5a4e7a;text-transform:uppercase">'+(isNight?'\u263e Night':'\u2600 Day')+' \u00b7 Hour '+currentHourNum+'</div><div style="display:flex;gap:5px"><button onclick="refreshNow()" style="font-size:10px;color:#C9A84C;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.15);border-radius:20px;padding:3px 9px;cursor:pointer;font-family:inherit;touch-action:manipulation">&#8635;</button><button onclick="resetLoc()" style="font-size:10px;color:#5a4e7a;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:3px 9px;cursor:pointer;font-family:inherit;touch-action:manipulation">Change</button></div></div>'
+    +heroHTML
+    +'</div>'
+    +(sunData?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"><div class="card" style="text-align:center;padding:12px;margin-bottom:0"><div style="font-size:16px;margin-bottom:2px">&#9728;</div><div style="font-size:10px;letter-spacing:.1em;color:#5a4e7a;text-transform:uppercase">Sunrise</div><div style="font-size:15px;color:#C9A84C;margin-top:2px">'+fmtT(sunData.sr)+'</div></div><div class="card" style="text-align:center;padding:12px;margin-bottom:0"><div style="font-size:16px;margin-bottom:2px">&#9789;</div><div style="font-size:10px;letter-spacing:.1em;color:#5a4e7a;text-transform:uppercase">Sunset</div><div style="font-size:15px;color:#C9A84C;margin-top:2px">'+fmtT(sunData.ss)+'</div></div></div>':'')
+    +energyBlock
+    +paidCard
+    +(sunData?'<div class="card"><span class="lbl">'+(isNight?"Tomorrow":"Today")+'\'s '+(isPaid?'24':'12')+' Planetary Hours</span>'+(isNight?tmrList:hourList)+'</div>':'')
+    +upgradeCards
+    +'</div>';
+}
+
+// =============================================================
+// RULING TAB
+// =============================================================
+function renderRuling(){
+  var tab=document.getElementById('ruling-tab');if(!tab)return;
+  var now=new Date(),dow=now.getDay();
+  var dayRuler=CHALDEAN[DAY_IDX[dow]];
+  var dp=P[dayRuler];
+  var rotPsalm=getRotatingPsalm(dayRuler);
+  var aff=getDailyAffirmation(dayRuler);
+  var herb=HERBS_DAY[dayRuler];
+  var moon=getMoonPhase(now);
+  var prompt=getJournalPrompt(dayRuler);
+
+  tab.innerHTML='<div class="fade-in">'
+    +'<div style="background:rgba(255,255,255,0.03);border:1px solid '+dp.col+'35;border-radius:17px;padding:22px 16px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden"><div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 25%,'+dp.col+'0e 0%,transparent 65%);pointer-events:none"></div><div style="font-size:10px;letter-spacing:.18em;color:#5a4e7a;text-transform:uppercase;margin-bottom:10px">Ruling Planet of the Day</div><div class="planet-pulse" style="font-size:72px;line-height:1;color:'+dp.col+';text-shadow:0 0 50px '+dp.col+'60;margin-bottom:8px">'+dp.sym+'</div><div style="font-size:22px;color:#e8e0d0;margin-bottom:4px">'+dayRuler+'</div><div style="font-size:13px;color:#9d8fbf;font-style:italic;margin-bottom:14px">'+dp.energy+'</div><div style="background:'+dp.col+'12;border-radius:11px;padding:12px 14px;text-align:left"><div style="font-size:10px;letter-spacing:.12em;color:'+dp.col+';text-transform:uppercase;margin-bottom:4px">Today\'s energy is best for</div><div style="font-size:13px;color:#c8bfdf;line-height:1.6">'+dp.bestFor+'</div></div></div>'
+    +'<div class="card" style="border-color:'+dp.col+'30"><span class="lbl">Today\'s Daily Tools</span><div class="row"><span class="row-l">&#128214; Psalm of the Day</span><span class="row-r" style="color:'+dp.col+'">'+rotPsalm+'</span></div><div class="row"><span class="row-l">&#128367; Candle</span><span class="row-r">'+dp.candle+'</span></div><div class="row"><span class="row-l">&#127807; Herb</span><span class="row-r">'+dp.herb+'</span></div></div>'
+    +'<div class="card"><span class="lbl">Today\'s Herb &mdash; '+dayRuler+' Energy</span><div style="display:flex;align-items:flex-start;gap:12px"><div style="font-size:24px;line-height:1;margin-top:2px">&#127807;</div><div><div style="font-size:16px;color:#e8e0d0;margin-bottom:4px">'+herb.n+'</div><div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.6">'+herb.p+'</div></div></div></div>'
+    +'<div style="background:linear-gradient(135deg,'+dp.col+'14,rgba(8,4,20,0.6));border:1px solid '+dp.col+'30;border-radius:16px;padding:18px;margin-bottom:12px"><div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:'+dp.col+';margin-bottom:8px">Today\'s Affirmation</div><div style="font-size:15px;color:#e8e0d0;line-height:1.75;font-style:italic">&ldquo;'+aff+'&rdquo;</div></div>'
+    +'<div style="background:linear-gradient(135deg,rgba(35,20,80,0.45),rgba(12,6,30,0.5));border:1px solid rgba(138,75,200,0.25);border-radius:16px;padding:18px;margin-bottom:12px"><div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9070c8;margin-bottom:4px">Daily Reflection</div><div style="font-size:11px;color:#5a4e7a;margin-bottom:10px">'+moon.s+' '+moon.n+' \u00b7 '+dayRuler+' Day</div><div style="font-size:14px;color:#c8bfdf;font-style:italic;line-height:1.82;margin-bottom:14px">&ldquo;'+prompt+'&rdquo;</div><button onclick="switchTab(\'journal\')" style="font-size:11px;padding:6px 14px;background:rgba(138,75,200,0.12);border:1px solid rgba(138,75,200,0.28);border-radius:20px;color:#9070c8;cursor:pointer;font-family:inherit;touch-action:manipulation">Write your response &#10022;</button></div>'
+    +'</div>';
+}
+
+// =============================================================
+// MOON TAB
+// =============================================================
+function renderMoon(){
+  var tab=document.getElementById('moon-tab');if(!tab)return;
+  var now=new Date(),dow=now.getDay();
+  var moon=getMoonPhase(now);
+  var sign=getMoonSign(now);
+  var guide=MOON_GUIDE[moon.n]||MOON_GUIDE['New Moon'];
+  var dayRuler=CHALDEAN[DAY_IDX[dow]];
+  var dp=P[dayRuler];
+
+  tab.innerHTML='<div class="fade-in">'
+    +'<div class="card" style="border-color:'+moon.c+'55;text-align:center;padding:24px 16px"><span class="lbl" style="text-align:center;display:block">Today\'s Lunar Phase</span><div style="font-size:62px;margin-bottom:10px;line-height:1">'+moon.s+'</div><div style="font-size:20px;color:#e8e0d0;margin-bottom:4px">'+moon.n+'</div><div style="font-size:12px;color:'+moon.c+';margin-bottom:10px">'+moon.illum+'% illuminated</div><div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.65">'+moon.m+'</div></div>'
+    +'<div class="card" style="border-color:'+sign.col+'45"><span class="lbl">Moon Currently in</span><div style="display:flex;align-items:center;gap:14px"><div style="font-size:38px;color:'+sign.col+';line-height:1">'+sign.sym+'</div><div><div style="font-size:18px;color:#e8e0d0;margin-bottom:2px">'+sign.name+'</div><div style="font-size:12px;color:'+sign.col+';font-style:italic;margin-bottom:4px">'+sign.elem+' Sign</div><div style="font-size:12px;color:#6a5e8a;line-height:1.5">Shifts every 2&ndash;3 days.<br>Your emotional energy moves with it.</div></div></div></div>'
+    +'<div style="background:linear-gradient(135deg,rgba(20,12,50,0.6),rgba(10,5,28,0.6));border:1px solid '+moon.c+'40;border-radius:16px;padding:18px;margin-bottom:12px"><div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:'+moon.c+';margin-bottom:6px">Moon Guidance</div><div style="font-size:16px;color:#e8e0d0;margin-bottom:8px">'+guide.title+'</div><div style="font-size:13px;color:#c8bfdf;line-height:1.72;margin-bottom:14px">'+guide.body+'</div><div style="background:'+moon.c+'12;border-radius:10px;padding:12px;border-left:3px solid '+moon.c+'60"><div style="font-size:10px;letter-spacing:.12em;color:'+moon.c+';text-transform:uppercase;margin-bottom:5px">Your action for today</div><div style="font-size:13px;color:#c8bfdf;line-height:1.6">'+guide.action+'</div></div></div>'
+    +'<div class="card" style="border-color:'+dp.col+'30"><span class="lbl">Today\'s Ruling Planet</span><div style="display:flex;align-items:center;gap:12px"><div style="font-size:30px;color:'+dp.col+';line-height:1">'+dp.sym+'</div><div><div style="font-size:15px;color:#e8e0d0">'+DAYS[dow]+' &mdash; '+dayRuler+'</div><div style="font-size:12px;color:#9d8fbf;font-style:italic;margin-top:2px">'+dp.energy+'</div></div></div></div>'
+    +'</div>';
+}
+
+// =============================================================
+// JOURNAL TAB
+// =============================================================
+function renderJournal(){
+  var tab=document.getElementById('journal-tab');if(!tab)return;
+  var dow=new Date().getDay();
+  var dayRuler=CHALDEAN[DAY_IDX[dow]];
+  var moon=getMoonPhase(new Date());
+  var prompt=getJournalPrompt(dayRuler);
+  var feelGroups=[{g:'-- HEAVY --',f:[]},{g:null,f:['Angry','Fearful','Desperate','Despairing','Grief-stricken','Hopeless','Numb','Bitter','Resentful','Heartbroken']},{g:'-- ANXIOUS --',f:[]},{g:null,f:['Anxious','Overwhelmed','Scattered','Restless','Unsettled','On edge','Disconnected']},{g:'-- LOW ENERGY --',f:[]},{g:null,f:['Heavy','Drained','Exhausted','Blocked','Stuck','Lost','Foggy']},{g:'-- PROCESSING --',f:[]},{g:null,f:['Confused','Searching','Uncertain','Reflective','Conflicted']},{g:'-- POSITIVE --',f:[]},{g:null,f:['Peaceful','Grateful','Centered','Clear','Hopeful','Energized','Grounded','Joyful']}];
+  var feelOpts=feelGroups.map(function(g){if(g.g)return '<option disabled style="color:#C9A84C;background:#0f0d24;font-weight:bold">'+g.g+'</option>';return g.f.map(function(f){return '<option value="'+f+'" style="color:#e8e0d0;background:#0f0d24">'+f+'</option>';}).join('');}).join('');
+  var entries=journalEntries.slice(0,12).map(function(e){return '<div style="background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px;margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:6px;gap:8px;flex-wrap:wrap"><span style="font-size:11px;color:#C9A84C">'+(e.planet?e.planet+' Hour':'')+'</span><span style="font-size:11px;color:#5a4e7a">'+e.date+'</span></div>'+(e.feeling?'<div style="margin-bottom:7px"><span style="font-size:11px;padding:2px 9px;border-radius:20px;background:rgba(201,168,76,0.1);color:#C9A84C">'+e.feeling+'</span></div>':'')+'<div style="font-size:13px;color:#9d8fbf;font-style:italic;line-height:1.6">'+e.text+'</div></div>';}).join('');
+
+  tab.innerHTML='<div class="fade-in">'
+    +'<div style="background:linear-gradient(135deg,rgba(35,20,80,0.5),rgba(18,10,45,0.5));border:1px solid rgba(212,56,122,0.25);border-radius:16px;padding:18px;margin-bottom:12px"><div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#D4387A;margin-bottom:4px">Today\'s Reflection</div><div style="font-size:11px;color:#5a4e7a;margin-bottom:10px">'+moon.s+' '+moon.n+' &middot; '+dayRuler+' Day</div><div style="font-size:15px;color:#c8bfdf;font-style:italic;line-height:1.82;margin-bottom:10px">&ldquo;'+prompt+'&rdquo;</div><div style="font-size:12px;color:#4a3e6a">Take your time. There is no wrong answer.</div></div>'
+    +'<div class="card"><span class="lbl">Write Here</span><textarea id="j-in" placeholder="Write freely. This space belongs to you..." rows="6"></textarea><div style="margin-top:10px;display:flex;gap:8px;align-items:stretch"><div style="position:relative;flex:1.2"><select id="feel-sel" style="width:100%;height:100%;min-height:44px;background:#0f0d24;border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#7a6e8a;font-family:inherit;font-size:13px;padding:10px 32px 10px 12px;-webkit-appearance:none;appearance:none;"><option value="" style="background:#0f0d24">How do you feel?</option>'+feelOpts+'</select><div style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#C9A84C;font-size:13px;pointer-events:none">&#9660;</div></div><button class="btn" onclick="saveEntry()" style="flex:1;padding:10px;font-size:12px;white-space:nowrap">Seal Entry</button></div></div>'
+    +'<div style="background:rgba(138,75,200,0.05);border:1px solid rgba(138,75,200,0.15);border-radius:14px;padding:16px;margin-bottom:14px;text-align:center"><div style="font-size:13px;color:#c8bfdf;font-style:italic;line-height:1.75;margin-bottom:10px">Upgrade to <strong style="color:#b085e8">Seeker</strong> to get prompts that shift with every planetary hour.</div><button onclick="doSignup(\'seeker\')" style="padding:9px 18px;background:rgba(138,75,200,0.1);border:1px solid rgba(138,75,200,0.28);border-radius:20px;color:#8060b8;font-size:12px;cursor:pointer;font-family:inherit;touch-action:manipulation">Unlock Seeker &mdash; $4.99 / month</button></div>'
+    +(journalEntries.length>0?'<div><span class="lbl">Your Energy Log</span>'+entries+'</div>':'')
+    +'</div>';
+}
+
+function saveEntry(){
+  try{
+    var inp=document.getElementById('j-in');
+    var feel=document.getElementById('feel-sel');
+    if(!inp||!inp.value.trim())return;
+    journalEntries.unshift({text:inp.value.trim(),date:new Date().toLocaleDateString(),planet:currentPlanet||'',feeling:feel?feel.value:''});
+    inp.value='';if(feel)feel.value='';
+    renderJournal();
+  }catch(e){}
+}
+
+function switchTab(name){
+  currentTab=name;
+  ['hora','ruling','moon','journal'].forEach(function(t){
+    var el=document.getElementById(t+'-tab');
+    var btn=document.getElementById('btn-'+t);
+    if(el)el.style.display=t===name?'block':'none';
+    if(btn)btn.classList.toggle('active',t===name);
+  });
+  if(name==='ruling')renderRuling();
+  if(name==='moon')renderMoon();
+  if(name==='journal')renderJournal();
+}
+function renderAll(){renderHora();if(currentTab==='ruling')renderRuling();if(currentTab==='moon')renderMoon();if(currentTab==='journal')renderJournal();}
+
+// Init
+renderHora();
+</script>
+
+<!--
+  =============================================================
+  MEMBERSTACK SCRIPT
+  Key: app_cmpdnbbm6001y0tnj1qmhe0pe
+  Loaded with defer at bottom of body to prevent conflicts
+  =============================================================
+-->
+<script
+  data-memberstack-app="app_cmpdnbbm6001y0tnj1qmhe0pe"
+  src="https://static.memberstack.com/scripts/v2/memberstack.js"
+  type="text/javascript"
+  defer>
+</script>
+<script>
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    if(window.$memberstackDom){
+      checkMembership();
+    }
+  }, 2000);
+});
+</script>
+
+</body>
+</html>
