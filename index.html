@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Viriditas Hora">
+<meta name="theme-color" content="#080614">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Viriditas Hora</title>
+<!-- Memberstack script tag (Webflow/vanilla method — no import needed) -->
+<script data-memberstack-app="app_cmpdnbbm6001y0tnj1qmhe0pe" src="https://static.memberstack.com/scripts/v1/memberstack.js" type="text/javascript"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;}
+html{height:100%;height:-webkit-fill-available;}
+body{font-family:'Palatino Linotype',Palatino,Georgia,serif;background:#080614;color:#e8e0d0;min-height:100vh;min-height:-webkit-fill-available;overflow-x:hidden;}
+@keyframes twinkle{0%,100%{opacity:.06}50%{opacity:.65}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.star{position:fixed;border-radius:50%;pointer-events:none;animation:twinkle var(--d) ease-in-out infinite;animation-delay:var(--delay);}
+.fade-in{animation:fadeIn 0.45s ease forwards;}
+.planet-pulse{animation:pulse 3.5s ease-in-out infinite;}
+.float{animation:float 4s ease-in-out infinite;}
+.card{background:rgba(255,255,255,0.032);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px;margin-bottom:12px;}
+.lbl{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#C9A84C;margin-bottom:10px;display:block;}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;gap:8px;}
+.row:last-child{border-bottom:none;}
+.row-l{color:#c8bfdf;flex:1;line-height:1.4;}
+.row-r{color:#e8e0d0;text-align:right;flex-shrink:0;max-width:55%;line-height:1.4;}
+#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+#app{position:relative;z-index:1;max-width:430px;margin:0 auto;padding:0 0 80px 0;}
+/* NOTIFICATION BANNER */
+#notif-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:999;background:linear-gradient(135deg,#1a1035,#2d1f5e);border-bottom:1px solid rgba(201,168,76,0.4);padding:12px 16px;text-align:center;animation:slideDown 0.4s ease;}
+#notif-banner p{font-size:13px;color:#e8e0d0;margin:0;}
+#notif-banner span{color:#C9A84C;font-style:italic;}
+#notif-close{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#C9A84C;font-size:18px;cursor:pointer;padding:4px;}
+/* HEADER */
+.app-header{padding:20px 16px 12px;display:flex;justify-content:space-between;align-items:center;}
+.app-title{font-size:18px;letter-spacing:.12em;color:#C9A84C;font-style:italic;}
+.member-btn{background:none;border:1px solid rgba(201,168,76,0.4);border-radius:20px;color:#C9A84C;font-size:11px;letter-spacing:.1em;padding:6px 14px;cursor:pointer;font-family:inherit;}
+.member-btn:hover{background:rgba(201,168,76,0.1);}
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid rgba(255,255,255,0.08);margin:0 0 16px 0;background:rgba(0,0,0,0.2);position:sticky;top:0;z-index:10;}
+.tab-btn{flex:1;padding:13px 4px;background:none;border:none;color:#7a6fa0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;transition:all .25s;}
+.tab-btn.active{color:#C9A84C;border-bottom-color:#C9A84C;}
+/* TAB PANELS */
+.tab-panel{display:none;padding:0 16px;animation:fadeIn 0.3s ease;}
+.tab-panel.active{display:block;}
+/* HORA HERO */
+.hora-hero{text-align:center;padding:24px 16px 20px;background:radial-gradient(ellipse at center,rgba(201,168,76,0.08) 0%,transparent 70%);border-radius:20px;margin-bottom:16px;position:relative;}
+.hora-planet-symbol{font-size:52px;margin-bottom:8px;display:block;}
+.hora-planet-name{font-size:26px;color:#C9A84C;letter-spacing:.1em;margin-bottom:6px;}
+.hora-best{font-size:13px;color:#a898c8;font-style:italic;line-height:1.5;max-width:260px;margin:0 auto 14px;}
+.hora-time-range{font-size:12px;color:#7a6fa0;letter-spacing:.08em;}
+/* ENERGY CARD */
+.energy-card{background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(80,50,120,0.12));border:1px solid rgba(201,168,76,0.2);border-radius:14px;padding:16px;margin-bottom:14px;text-align:center;}
+.energy-affirmation{font-size:14px;font-style:italic;color:#e8e0d0;line-height:1.6;margin-bottom:10px;}
+.energy-affirmation::before{content:'\201C';color:#C9A84C;font-size:20px;line-height:0;vertical-align:-4px;margin-right:2px;}
+.energy-affirmation::after{content:'\201D';color:#C9A84C;font-size:20px;line-height:0;vertical-align:-4px;margin-left:2px;}
+.energy-divider{border:none;border-top:1px solid rgba(201,168,76,0.2);margin:10px 0;}
+.energy-action{font-size:12px;color:#C9A84C;letter-spacing:.1em;}
+/* HOURS LIST */
+.hours-list{margin-bottom:16px;}
+.hour-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;margin-bottom:4px;border:1px solid transparent;transition:all .2s;}
+.hour-item.current-hour{background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.3);}
+.hour-sym{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
+.hour-info{flex:1;}
+.hour-name{font-size:13px;color:#e8e0d0;}
+.hour-item.current-hour .hour-name{color:#C9A84C;font-weight:bold;}
+.hour-time{font-size:11px;color:#7a6fa0;}
+.hour-num{font-size:11px;color:#5a4f72;width:20px;text-align:right;flex-shrink:0;}
+/* SEEKER TEASER */
+.seeker-teaser{text-align:center;padding:18px;background:linear-gradient(135deg,rgba(201,168,76,0.06),rgba(80,50,120,0.1));border:1px solid rgba(201,168,76,0.15);border-radius:14px;margin-bottom:16px;}
+.seeker-teaser p{font-size:13px;color:#a898c8;font-style:italic;margin-bottom:12px;}
+.upgrade-btn{display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#C9A84C,#a07832);border:none;border-radius:20px;color:#080614;font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:inherit;font-weight:bold;}
+.upgrade-btn:hover{opacity:.9;}
+/* RULING TAB */
+.ruling-hero{text-align:center;padding:24px 16px 20px;background:radial-gradient(ellipse at center,rgba(100,70,200,0.1) 0%,transparent 70%);border-radius:20px;margin-bottom:16px;}
+.ruling-symbol{font-size:52px;margin-bottom:8px;display:block;}
+.ruling-name{font-size:24px;color:#C9A84C;letter-spacing:.1em;margin-bottom:4px;}
+.ruling-energy{font-size:13px;color:#a898c8;font-style:italic;}
+/* MOON TAB */
+.moon-hero{text-align:center;padding:28px 16px 20px;}
+.moon-symbol{font-size:64px;margin-bottom:12px;display:block;}
+.moon-phase-name{font-size:20px;color:#e8e0d0;letter-spacing:.08em;margin-bottom:6px;}
+.moon-illum{font-size:13px;color:#7a6fa0;margin-bottom:4px;}
+.moon-sign{font-size:14px;color:#C9A84C;font-style:italic;}
+/* JOURNAL TAB */
+.journal-prompt-card{background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(60,40,100,0.15));border:1px solid rgba(201,168,76,0.2);border-radius:16px;padding:20px;margin-bottom:16px;}
+.journal-prompt-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#C9A84C;margin-bottom:10px;display:block;}
+.journal-prompt-text{font-size:15px;color:#e8e0d0;line-height:1.7;font-style:italic;}
+.journal-textarea{width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#e8e0d0;font-family:inherit;font-size:14px;line-height:1.6;padding:14px;resize:none;min-height:160px;margin-bottom:12px;outline:none;}
+.journal-textarea:focus{border-color:rgba(201,168,76,0.4);}
+.journal-textarea::placeholder{color:#5a4f72;}
+.journal-save-btn{width:100%;padding:13px;background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(80,50,120,0.2));border:1px solid rgba(201,168,76,0.3);border-radius:10px;color:#C9A84C;font-family:inherit;font-size:13px;letter-spacing:.1em;cursor:pointer;}
+.journal-save-btn:hover{background:rgba(201,168,76,0.2);}
+.journal-entries{margin-top:16px;}
+.journal-entry{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px;margin-bottom:8px;}
+.journal-entry-date{font-size:10px;color:#7a6fa0;letter-spacing:.1em;margin-bottom:6px;}
+.journal-entry-text{font-size:13px;color:#c8bfdf;line-height:1.6;}
+/* LOCK OVERLAY */
+.lock-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:24px;text-align:center;margin-bottom:12px;}
+.lock-icon{font-size:28px;margin-bottom:10px;opacity:.4;}
+.lock-title{font-size:14px;color:#7a6fa0;margin-bottom:8px;}
+.lock-desc{font-size:12px;color:#5a4f72;font-style:italic;margin-bottom:14px;line-height:1.5;}
+/* TALLY WAITLIST */
+.waitlist-section{margin-top:8px;}
+/* MEMBER STATUS */
+.member-status-bar{background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;font-size:12px;}
+.member-status-name{color:#C9A84C;}
+.member-status-plan{color:#7a6fa0;font-style:italic;}
+.member-logout-btn{background:none;border:none;color:#5a4f72;font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;}
+</style>
+</head>
+<body>
+<div id="starfield"></div>
+
+<!-- Notification Banner -->
+<div id="notif-banner">
+  <p>✦ A new planetary hour has begun — <span id="notif-text"></span></p>
+  <button id="notif-close" onclick="document.getElementById('notif-banner').style.display='none'">✕</button>
+</div>
+
+<div id="app">
+  <!-- Header -->
+  <div class="app-header">
+    <span class="app-title">Viriditas Hora</span>
+    <button class="member-btn" id="member-action-btn" onclick="handleMemberBtn()">Sign In</button>
+  </div>
+
+  <!-- Member status bar (shown when logged in) -->
+  <div id="member-status-bar" style="display:none;padding:0 16px 8px;">
+    <div class="member-status-bar">
+      <span class="member-status-name" id="member-name-display"></span>
+      <span class="member-status-plan" id="member-plan-display"></span>
+      <button class="member-logout-btn" onclick="handleLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('hora',this)">☽ Hora</button>
+    <button class="tab-btn" onclick="switchTab('ruling',this)">✦ Ruling</button>
+    <button class="tab-btn" onclick="switchTab('moon',this)">◯ Moon</button>
+    <button class="tab-btn" onclick="switchTab('journal',this)">✎ Journal</button>
+  </div>
+
+  <!-- HORA TAB -->
+  <div class="tab-panel active" id="tab-hora">
+    <div id="hora-content"></div>
+  </div>
+
+  <!-- RULING TAB -->
+  <div class="tab-panel" id="tab-ruling">
+    <div id="ruling-content"></div>
+  </div>
+
+  <!-- MOON TAB -->
+  <div class="tab-panel" id="tab-moon">
+    <div id="moon-content"></div>
+  </div>
+
+  <!-- JOURNAL TAB -->
+  <div class="tab-panel" id="tab-journal">
+    <div id="journal-content"></div>
+  </div>
+</div>
+
+<script>
+// ─── PLANET DATA ───────────────────────────────────────────────
+var PLANETS = {
+  sun:     {sym:'☉', name:'Sun',     color:'#FFD700', energy:'Vitality, leadership, clarity',       best:'Success, visibility, confidence, solar rituals',     psalm:'Psalm 19 — The heavens declare the glory',          candle:'Gold or Yellow',   herb:'Chamomile, St. John\'s Wort', affirmation:'I shine with purpose and power.',            action:'Step into the light — be seen today.'},
+  moon:    {sym:'☽', name:'Moon',    color:'#C8D8E8', energy:'Intuition, dreams, emotion',          best:'Dreams, psychic work, emotional healing, water',      psalm:'Psalm 8 — O Lord, our Lord, how majestic',          candle:'White or Silver',  herb:'Jasmine, Mugwort',             affirmation:'I flow with the tides of feeling.',         action:'Rest, dream, and listen inward.'},
+  mars:    {sym:'♂', name:'Mars',    color:'#E84040', energy:'Courage, action, willpower',          best:'Courage, protection, physical strength, new starts',  psalm:'Psalm 144 — Blessed be the Lord my rock',           candle:'Red',              herb:'Nettle, Basil',                affirmation:'I act with bold and fearless courage.',     action:'Move your body — begin the hard thing.'},
+  mercury: {sym:'☿', name:'Mercury', color:'#B0C8A0', energy:'Communication, intellect, travel',   best:'Writing, study, messages, contracts, travel',         psalm:'Psalm 119 — Blessed are those who keep His ways',   candle:'Yellow or Orange', herb:'Lavender, Dill',              affirmation:'My words carry clarity and truth.',         action:'Write, speak, or send the important message.'},
+  jupiter: {sym:'♃', name:'Jupiter', color:'#C8A870', energy:'Abundance, expansion, wisdom',       best:'Abundance, growth, legal matters, blessings',         psalm:'Psalm 23 — The Lord is my shepherd',                candle:'Purple or Blue',   herb:'Sage, Nutmeg',                affirmation:'I expand into abundance and grace.',        action:'Ask for what you truly want.'},
+  venus:   {sym:'♀', name:'Venus',   color:'#F0A0C0', energy:'Love, beauty, harmony, pleasure',    best:'Love, beauty, art, relationships, reconciliation',    psalm:'Psalm 45 — My heart overflows with a pleasing theme',candle:'Pink or Green',   herb:'Rose, Yarrow',                affirmation:'I am worthy of love and beauty.',           action:'Create something beautiful or reach out with love.'},
+  saturn:  {sym:'♄', name:'Saturn',  color:'#907878', energy:'Discipline, boundaries, structure',  best:'Banishing, binding, structure, long-term planning',   psalm:'Psalm 90 — Lord, you have been our dwelling place', candle:'Black or Dark Purple', herb:'Myrrh, Comfrey',          affirmation:'I build with patience and steady wisdom.',  action:'Set a firm boundary or commit to a long-term plan.'}
+};
+
+var PLANET_ORDER = ['sun','moon','mars','mercury','jupiter','venus','saturn'];
+
+// Day rulers (0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat)
+var DAY_RULERS = ['sun','moon','mars','mercury','jupiter','venus','saturn'];
+
+// Chaldean order for hours
+var CHALDEAN = ['saturn','jupiter','mars','sun','venus','mercury','moon'];
+
+// Moon phases
+var MOON_PHASES = [
+  {name:'New Moon',        sym:'🌑', guidance:'Plant seeds of intention. What do you wish to call in this cycle?'},
+  {name:'Waxing Crescent', sym:'🌒', guidance:'Take the first action toward your new beginning. Small steps matter.'},
+  {name:'First Quarter',   sym:'🌓', guidance:'Push through resistance. Commit to your path even when it\'s hard.'},
+  {name:'Waxing Gibbous',  sym:'🌔', guidance:'Refine and prepare. Your manifestation is building momentum.'},
+  {name:'Full Moon',       sym:'🌕', guidance:'Release, celebrate, and illuminate. What are you grateful for?'},
+  {name:'Waning Gibbous',  sym:'🌖', guidance:'Share your wisdom. Gratitude and generosity flow freely now.'},
+  {name:'Last Quarter',    sym:'🌗', guidance:'Let go of what no longer serves. Clear space for the new.'},
+  {name:'Waning Crescent', sym:'🌘', guidance:'Rest and restore. Honor the wisdom gained this cycle.'}
+];
+
+var MOON_SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+var MOON_SIGN_ENERGY = {
+  Aries:'Bold action and new beginnings. Initiate courageously.',
+  Taurus:'Groundedness and sensory pleasure. Tend to your body and home.',
+  Gemini:'Curiosity and communication. Explore, write, connect.',
+  Cancer:'Deep feeling and nurturing. Care for yourself and loved ones.',
+  Leo:'Creative fire and self-expression. Shine and celebrate.',
+  Virgo:'Discernment and healing. Organize, cleanse, restore.',
+  Libra:'Balance and beauty. Seek harmony in relationships.',
+  Scorpio:'Deep transformation. Dive below the surface.',
+  Sagittarius:'Expansive vision and truth-seeking. Explore big ideas.',
+  Capricorn:'Ambitious discipline. Build something that lasts.',
+  Aquarius:'Visionary community. Connect with your tribe.',
+  Pisces:'Mystical dreaming and compassion. Surrender to the mystery.'
+};
+
+// ─── STATE ─────────────────────────────────────────────────────
+var userTier = 'free'; // 'free', 'seeker', 'initiate'
+var currentMember = null;
+var currentTab = 'hora';
+var sunriseHour = 6, sunsetHour = 18;
+var locationName = '';
+var lastHourIndex = -1;
+var notifTimeout = null;
+
+// ─── ADMIN TOGGLE (hidden — tap app title 7x) ──────────────────
+var tapCount = 0, tapTimer = null;
+document.querySelector('.app-title').addEventListener('click', function(){
+  clearTimeout(tapTimer);
+  tapCount++;
+  if(tapCount >= 7){
+    tapCount = 0;
+    var opts = ['free','seeker','initiate'];
+    var cur = opts.indexOf(userTier);
+    userTier = opts[(cur+1) % opts.length];
+    alert('Admin: tier set to ' + userTier);
+    renderAll();
+  } else {
+    tapTimer = setTimeout(function(){tapCount=0;}, 1500);
+  }
+});
+
+// ─── MEMBERSTACK INTEGRATION ────────────────────────────────────
+function handleMemberBtn(){
+  if(currentMember){
+    // Already logged in — show profile or do nothing
+    return;
+  }
+  if(window.$memberstackDom){
+    window.$memberstackDom.openModal('LOGIN').then(function(result){
+      if(result && result.data){ checkMembership(); }
+    }).catch(function(){});
+  }
+}
+
+function handleLogout(){
+  if(window.$memberstackDom){
+    window.$memberstackDom.signOut().then(function(){
+      currentMember = null;
+      userTier = 'free';
+      updateMemberUI();
+      renderAll();
+    });
+  }
+}
+
+function openSignup(planId){
+  if(window.$memberstackDom){
+    var opts = planId ? {planId: planId} : {};
+    window.$memberstackDom.openModal('SIGNUP', opts).then(function(result){
+      if(result && result.data){ checkMembership(); }
+    }).catch(function(){});
+  }
+}
+
+function checkMembership(){
+  if(!window.$memberstackDom) return;
+  window.$memberstackDom.getCurrentMember().then(function(result){
+    if(result && result.data){
+      currentMember = result.data;
+      var plans = result.data.planConnections || [];
+      if(plans.some(function(p){ return p.planName === 'Initiate'; })){
+        userTier = 'initiate';
+      } else if(plans.some(function(p){ return p.planName === 'Seeker'; })){
+        userTier = 'seeker';
+      } else {
+        userTier = 'free';
+      }
+    } else {
+      currentMember = null;
+      userTier = 'free';
+    }
+    updateMemberUI();
+    renderAll();
+  }).catch(function(){ userTier='free'; renderAll(); });
+}
+
+function updateMemberUI(){
+  var btn = document.getElementById('member-action-btn');
+  var bar = document.getElementById('member-status-bar');
+  var nameEl = document.getElementById('member-name-display');
+  var planEl = document.getElementById('member-plan-display');
+  if(currentMember){
+    btn.style.display = 'none';
+    bar.style.display = 'block';
+    nameEl.textContent = currentMember.auth && currentMember.auth.email ? currentMember.auth.email.split('@')[0] : 'Member';
+    planEl.textContent = userTier.charAt(0).toUpperCase() + userTier.slice(1);
+  } else {
+    btn.style.display = 'block';
+    btn.textContent = 'Sign In';
+    bar.style.display = 'none';
+  }
+}
+
+// Check on load (after Memberstack script loads)
+window.addEventListener('load', function(){
+  setTimeout(checkMembership, 800);
+});
+
+// ─── STARS ─────────────────────────────────────────────────────
+(function(){
+  var sf = document.getElementById('starfield');
+  for(var i=0;i<90;i++){
+    var s=document.createElement('div');
+    var sz=Math.random()<0.15?2.5:Math.random()<0.4?1.5:1;
+    s.className='star';
+    s.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;background:rgba('+(200+Math.floor(Math.random()*55))+','+(200+Math.floor(Math.random()*55))+','+(210+Math.floor(Math.random()*45))+',0.9);--d:'+(2.5+Math.random()*5)+'s;--delay:'+(-Math.random()*6)+'s;';
+    sf.appendChild(s);
+  }
+})();
+
+// ─── PLANETARY HOUR CALCULATION ─────────────────────────────────
+function getPlanetaryHours(srH, ssH){
+  var now = new Date();
+  var dayOfWeek = now.getDay(); // 0=Sun
+  var dayRuler = DAY_RULERS[dayOfWeek];
+  var dayRulerIdx = CHALDEAN.indexOf(dayRuler);
+  var hours = [];
+  var dayLen = (ssH - srH) * 3600;
+  var nightLen = (24 - (ssH - srH)) * 3600;
+  var dayHourLen = dayLen / 12;
+  var nightHourLen = nightLen / 12;
+  var baseDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), srH, 0, 0);
+  for(var i=0;i<12;i++){
+    var start = new Date(baseDate.getTime() + i * dayHourLen * 1000);
+    var end = new Date(baseDate.getTime() + (i+1) * dayHourLen * 1000);
+    var pIdx = (dayRulerIdx + i) % 7;
+    var planet = CHALDEAN[pIdx];
+    hours.push({num:i+1, planet:planet, start:start, end:end, isDay:true});
+  }
+  var nightBase = new Date(baseDate.getTime() + dayLen * 1000);
+  var nightDayRulerIdx = (dayRulerIdx + 12) % 7;
+  for(var j=0;j<12;j++){
+    var ns = new Date(nightBase.getTime() + j * nightHourLen * 1000);
+    var ne = new Date(nightBase.getTime() + (j+1) * nightHourLen * 1000);
+    var npIdx = (nightDayRulerIdx + j) % 7;
+    var np = CHALDEAN[npIdx];
+    hours.push({num:j+13, planet:np, start:ns, end:ne, isDay:false});
+  }
+  return hours;
+}
+
+function getCurrentHourObj(hours){
+  var now = new Date();
+  for(var i=0;i<hours.length;i++){
+    if(now >= hours[i].start && now < hours[i].end) return hours[i];
+  }
+  return hours[0];
+}
+
+function fmt(d){
+  var h=d.getHours(),m=d.getMinutes(),ampm=h>=12?'PM':'AM';
+  h=h%12||12;
+  return h+':'+(m<10?'0'+m:m)+' '+ampm;
+}
+
+// ─── NOTIFICATION ───────────────────────────────────────────────
+function checkHourChange(hours){
+  var cur = getCurrentHourObj(hours);
+  if(cur && cur.num !== lastHourIndex){
+    if(lastHourIndex !== -1){
+      var p = PLANETS[cur.planet];
+      var nb = document.getElementById('notif-banner');
+      var nt = document.getElementById('notif-text');
+      nt.textContent = p.name + ' Hour begins — ' + p.energy;
+      nb.style.display = 'block';
+      clearTimeout(notifTimeout);
+      notifTimeout = setTimeout(function(){ nb.style.display='none'; }, 8000);
+    }
+    lastHourIndex = cur.num;
+  }
+}
+
+// ─── MOON CALCULATION ───────────────────────────────────────────
+function getMoonData(){
+  var now = new Date();
+  var known = new Date('2000-01-06T18:14:00Z');
+  var cycle = 29.530588853;
+  var diff = (now - known) / (1000*60*60*24);
+  var age = ((diff % cycle) + cycle) % cycle;
+  var illum = Math.round(50 * (1 - Math.cos(2 * Math.PI * age / cycle)));
+  var phase = Math.floor(age / (cycle/8));
+  // Moon sign (approximate)
+  var moonSignIdx = Math.floor((age / cycle) * 12) % 12;
+  return {
+    phase: MOON_PHASES[phase] || MOON_PHASES[0],
+    illumination: illum,
+    sign: MOON_SIGNS[moonSignIdx],
+    age: age.toFixed(1)
+  };
+}
+
+// ─── DAILY PROMPT ───────────────────────────────────────────────
+var PROMPTS = [
+  'What is quietly asking for your attention today?',
+  'Where in your life are you being called to grow?',
+  'What would you do today if you trusted yourself completely?',
+  'What are you ready to release? What would that freedom feel like?',
+  'What truth have you been afraid to speak aloud?',
+  'Where are you withholding love — from yourself or another?',
+  'What does your body need most right now?',
+  'What small act of beauty can you create today?',
+  'What are you grateful for that you rarely name?',
+  'If this day were your last ordinary day, how would you spend it?',
+  'What old story are you still living that no longer fits?',
+  'Where do you feel most alive? How can you go there today?',
+  'What are you being asked to surrender?',
+  'What would your wiser future self say to you right now?',
+  'What needs your full, undivided presence today?'
+];
+
+function getDailyPrompt(planet){
+  var d = new Date();
+  var idx = (d.getDate() + d.getMonth() * 31) % PROMPTS.length;
+  return PROMPTS[idx];
+}
+
+// ─── RENDER HORA ────────────────────────────────────────────────
+function renderHora(){
+  var hours = getPlanetaryHours(sunriseHour, sunsetHour);
+  checkHourChange(hours);
+  var cur = getCurrentHourObj(hours);
+  var p = PLANETS[cur.planet];
+  var d = new Date();
+  var dayRuler = PLANETS[DAY_RULERS[d.getDay()]];
+
+  // Energy card data
+  var dayOfYear = Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000);
+  var affirmation = p.affirmation;
+  var action = p.action;
+
+  var html = '<div class="hora-hero fade-in">';
+  html += '<span class="hora-planet-symbol planet-pulse">'+p.sym+'</span>';
+  html += '<div class="hora-planet-name">'+p.name+' Hour</div>';
+  html += '<div class="hora-best">Best for: '+p.best+'</div>';
+  html += '<div class="hora-time-range">'+fmt(cur.start)+' – '+fmt(cur.end)+'</div>';
+  if(locationName) html += '<div style="font-size:11px;color:#5a4f72;margin-top:6px;">'+locationName+'</div>';
+  html += '</div>';
+
+  // Energy card
+  html += '<div class="energy-card fade-in">';
+  html += '<div class="energy-affirmation">'+affirmation+'</div>';
+  html += '<hr class="energy-divider">';
+  html += '<div class="energy-action">🌿 Do this now: '+action+'</div>';
+  html += '</div>';
+
+  // Daytime hours list
+  html += '<div class="card fade-in"><span class="lbl">Today\'s Planetary Hours</span>';
+  html += '<div class="hours-list">';
+  var dayHours = hours.filter(function(h){return h.isDay;});
+  dayHours.forEach(function(h){
+    var hp = PLANETS[h.planet];
+    var isCur = (cur.num === h.num);
+    html += '<div class="hour-item'+(isCur?' current-hour':'')+'">';
+    html += '<span class="hour-sym">'+hp.sym+'</span>';
+    html += '<div class="hour-info"><div class="hour-name">'+hp.name+(isCur?' ← Now':' Hour')+'</div>';
+    html += '<div class="hour-time">'+fmt(h.start)+' – '+fmt(h.end)+'</div></div>';
+    html += '<span class="hour-num">'+h.num+'</span>';
+    html += '</div>';
+  });
+  html += '</div></div>';
+
+  // Seeker teaser or unlock section
+  if(userTier === 'free'){
+    html += '<div class="seeker-teaser fade-in">';
+    html += '<p>✦ Unlock hour-by-hour tools — psalms, candles, herbs, and guided prompts for every planetary hour.</p>';
+    html += '<button class="upgrade-btn" onclick="openSignup()">Upgrade to Seeker</button>';
+    html += '</div>';
+    // Waitlist embed
+    html += '<div class="waitlist-section"><div data-tally-src="https://tally.so/embed/D4ZV8X?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" data-tally-layout="inline" data-tally-emoji-text="👋" data-tally-emoji-animation="wave" style="width:100%"></div></div>';
+  } else {
+    // Seeker/Initiate: show hour tools
+    html += '<div class="card fade-in"><span class="lbl">Hour Tools — '+p.name+'</span>';
+    html += '<div class="row"><span class="row-l">📖 Psalm</span><span class="row-r">'+p.psalm+'</span></div>';
+    html += '<div class="row"><span class="row-l">🕯 Candle</span><span class="row-r">'+p.candle+'</span></div>';
+    html += '<div class="row"><span class="row-l">🌿 Herb</span><span class="row-r">'+p.herb+'</span></div>';
+    html += '</div>';
+  }
+
+  document.getElementById('hora-content').innerHTML = html;
+  if(window.Tally) window.Tally.loadEmbeds();
+}
+
+// ─── RENDER RULING ──────────────────────────────────────────────
+function renderRuling(){
+  var d = new Date();
+  var ruler = DAY_RULERS[d.getDay()];
+  var p = PLANETS[ruler];
+  var html = '<div class="ruling-hero fade-in">';
+  html += '<span class="ruling-symbol float">'+p.sym+'</span>';
+  html += '<div class="ruling-name">'+p.name+'</div>';
+  html += '<div class="ruling-energy">'+p.energy+'</div>';
+  html += '</div>';
+
+  html += '<div class="card fade-in"><span class="lbl">Daily Tools</span>';
+  html += '<div class="row"><span class="row-l">📖 Psalm</span><span class="row-r">'+p.psalm+'</span></div>';
+  html += '<div class="row"><span class="row-l">🕯 Candle Color</span><span class="row-r">'+p.candle+'</span></div>';
+  html += '<div class="row"><span class="row-l">🌿 Herb</span><span class="row-r">'+p.herb+'</span></div>';
+  html += '</div>';
+
+  html += '<div class="energy-card fade-in">';
+  html += '<span class="lbl" style="text-align:center;display:block;">Daily Energy Prompt</span>';
+  html += '<div class="energy-affirmation">'+p.affirmation+'</div>';
+  html += '<hr class="energy-divider">';
+  html += '<div class="energy-action">🌿 '+p.action+'</div>';
+  html += '</div>';
+
+  if(userTier === 'initiate'){
+    html += '<div class="card fade-in"><span class="lbl">Initiate Depth Practice</span>';
+    html += '<div class="row"><span class="row-l">Element</span><span class="row-r">'+(ruler==='sun'||ruler==='mars'?'Fire':ruler==='moon'||ruler==='venus'?'Water':ruler==='mercury'?'Air':'Earth')+'</span></div>';
+    html += '<div class="row"><span class="row-l">Color</span><span class="row-r">'+p.candle+'</span></div>';
+    html += '<div class="row"><span class="row-l">Best For</span><span class="row-r">'+p.best+'</span></div>';
+    html += '</div>';
+  }
+
+  document.getElementById('ruling-content').innerHTML = html;
+}
+
+// ─── RENDER MOON ────────────────────────────────────────────────
+function renderMoon(){
+  var moon = getMoonData();
+  var html = '<div class="moon-hero fade-in">';
+  html += '<span class="moon-symbol float">'+moon.phase.sym+'</span>';
+  html += '<div class="moon-phase-name">'+moon.phase.name+'</div>';
+  html += '<div class="moon-illum">Illumination: '+moon.illumination+'%  ·  Day '+moon.age+' of cycle</div>';
+  html += '<div class="moon-sign">Moon in '+moon.sign+'</div>';
+  html += '</div>';
+
+  html += '<div class="card fade-in"><span class="lbl">Moon Sign Energy</span>';
+  html += '<p style="font-size:13px;color:#c8bfdf;line-height:1.7;font-style:italic;">'+MOON_SIGN_ENERGY[moon.sign]+'</p>';
+  html += '</div>';
+
+  html += '<div class="energy-card fade-in">';
+  html += '<span class="lbl" style="text-align:center;display:block;">Phase Guidance</span>';
+  html += '<div class="energy-affirmation">'+moon.phase.guidance+'</div>';
+  html += '</div>';
+
+  if(userTier === 'initiate'){
+    html += '<div class="card fade-in"><span class="lbl">Lunar Ritual — Initiate</span>';
+    html += '<p style="font-size:13px;color:#c8bfdf;line-height:1.7;">During the '+moon.phase.name+' with Moon in '+moon.sign+', light a white candle and sit with the question: '+PROMPTS[Math.floor(moon.age)]+'</p>';
+    html += '</div>';
+  } else if(userTier === 'free'){
+    html += '<div class="seeker-teaser fade-in">';
+    html += '<p>✦ Unlock personalized lunar rituals and moon-based journaling prompts.</p>';
+    html += '<button class="upgrade-btn" onclick="openSignup()">Upgrade to Seeker</button>';
+    html += '</div>';
+  }
+
+  document.getElementById('moon-content').innerHTML = html;
+}
+
+// ─── RENDER JOURNAL ─────────────────────────────────────────────
+function renderJournal(){
+  var d = new Date();
+  var ruler = DAY_RULERS[d.getDay()];
+  var p = PLANETS[ruler];
+  var prompt = getDailyPrompt(ruler);
+
+  if(userTier === 'free'){
+    var html = '<div class="journal-prompt-card fade-in">';
+    html += '<span class="journal-prompt-label">Today\'s Reflection</span>';
+    html += '<div class="journal-prompt-text">'+prompt+'</div>';
+    html += '</div>';
+    html += '<div class="lock-card fade-in"><div class="lock-icon">🔒</div>';
+    html += '<div class="lock-title">Save your entries with Seeker</div>';
+    html += '<div class="lock-desc">Journal entries, history, and deeper prompts are unlocked at the Seeker level.</div>';
+    html += '<button class="upgrade-btn" onclick="openSignup()">Upgrade to Seeker</button></div>';
+    document.getElementById('journal-content').innerHTML = html;
+    return;
+  }
+
+  var entries = [];
+  try{ entries = JSON.parse(localStorage.getItem('vh_journal') || '[]'); }catch(e){}
+
+  var html = '<div class="journal-prompt-card fade-in">';
+  html += '<span class="journal-prompt-label">Today\'s Prompt — '+p.name+' rules this day</span>';
+  html += '<div class="journal-prompt-text">'+prompt+'</div>';
+  html += '</div>';
+
+  html += '<textarea class="journal-textarea" id="journal-input" placeholder="Write freely here... there is no wrong answer."></textarea>';
+  html += '<button class="journal-save-btn" onclick="saveJournalEntry()">✦ Save Entry</button>';
+
+  if(entries.length > 0){
+    html += '<div class="journal-entries" style="margin-top:20px;">';
+    html += '<span class="lbl">Past Entries</span>';
+    for(var i=entries.length-1;i>=Math.max(0,entries.length-5);i--){
+      var e = entries[i];
+      html += '<div class="journal-entry"><div class="journal-entry-date">'+e.date+'</div>';
+      html += '<div class="journal-entry-text">'+e.text+'</div></div>';
+    }
+    html += '</div>';
+  }
+  document.getElementById('journal-content').innerHTML = html;
+}
+
+function saveJournalEntry(){
+  var txt = document.getElementById('journal-input');
+  if(!txt || !txt.value.trim()) return;
+  var entries = [];
+  try{ entries = JSON.parse(localStorage.getItem('vh_journal')||'[]'); }catch(e){}
+  var d = new Date();
+  entries.push({
+    date: d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),
+    text: txt.value.trim()
+  });
+  localStorage.setItem('vh_journal', JSON.stringify(entries));
+  txt.value = '';
+  renderJournal();
+}
+
+// ─── TAB SWITCHING ──────────────────────────────────────────────
+function switchTab(name, btn){
+  currentTab = name;
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='hora') renderHora();
+  if(name==='ruling') renderRuling();
+  if(name==='moon') renderMoon();
+  if(name==='journal') renderJournal();
+}
+
+function renderAll(){
+  renderHora();
+  if(currentTab==='ruling') renderRuling();
+  if(currentTab==='moon') renderMoon();
+  if(currentTab==='journal') renderJournal();
+}
+
+// ─── LOCATION + SUNRISE/SUNSET ──────────────────────────────────
+function loadSunTimes(){
+  if(!navigator.geolocation){ renderAll(); return; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var lat = pos.coords.latitude.toFixed(4);
+    var lon = pos.coords.longitude.toFixed(4);
+    fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&daily=sunrise,sunset&timezone=auto&forecast_days=1')
+      .then(function(r){return r.json();})
+      .then(function(data){
+        if(data.daily && data.daily.sunrise && data.daily.sunrise[0]){
+          var sr = new Date(data.daily.sunrise[0]);
+          var ss = new Date(data.daily.sunset[0]);
+          sunriseHour = sr.getHours() + sr.getMinutes()/60;
+          sunsetHour = ss.getHours() + ss.getMinutes()/60;
+        }
+        // Reverse geocode city
+        fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json')
+          .then(function(r){return r.json();})
+          .then(function(geo){
+            locationName = (geo.address && (geo.address.city || geo.address.town || geo.address.county)) || '';
+            renderAll();
+          }).catch(function(){renderAll();});
+      }).catch(function(){renderAll();});
+  }, function(){ renderAll(); });
+}
+
+// ─── INIT ───────────────────────────────────────────────────────
+loadSunTimes();
+renderAll();
+setInterval(function(){
+  var hours = getPlanetaryHours(sunriseHour, sunsetHour);
+  checkHourChange(hours);
+  if(currentTab==='hora') renderHora();
+}, 30000);
+
+// Load Tally embed script
+(function(d,w,c){var s=d.createElement('script');s.src='https://tally.so/widgets/embed.js';s.async=true;w[c]=w[c]||function(){(w[c].q=w[c].q||[]).push(arguments)};d.head.appendChild(s);})(document,window,'Tally');
+</script>
+</body>
+</html>
