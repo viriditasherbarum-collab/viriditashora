@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Viriditas Hora">
+<meta name="theme-color" content="#080614">
+<title>Viriditas Hora</title>
+<script data-memberstack-app="app_cmpdnbbm6001y0tnj1qmhe0pe" src="https://static.memberstack.com/scripts/v1/memberstack.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080614; --bg2:#0d0a1e; --bg3:#13102a;
+  --surface:rgba(255,255,255,0.04); --border:rgba(255,255,255,0.08);
+  --gold:#c9a84c; --gold2:#e8c97a; --silver:#a0a8c0;
+  --text:#e8e4f0; --muted:#6b6880; --glow:rgba(201,168,76,0.15);
+  --sun-color:#f4c430; --moon-color:#c0cfe0; --mars-color:#e05555;
+  --mercury-color:#4ecb8d; --jupiter-color:#a06cd5;
+  --venus-color:#e975b0; --saturn-color:#1e3a6e;
+  --font:'Cormorant Garamond',Georgia,serif;
+  --radius:12px; --nav-h:64px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:18px;font-weight:400;line-height:1.7;min-height:100%;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse at 20% 20%,rgba(100,60,200,0.08) 0%,transparent 60%),
+  radial-gradient(ellipse at 80% 80%,rgba(50,30,120,0.10) 0%,transparent 60%),
+  radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,0.3) 0%,transparent 0%),
+  radial-gradient(1px 1px at 70% 15%,rgba(255,255,255,0.25) 0%,transparent 0%),
+  radial-gradient(1px 1px at 45% 60%,rgba(255,255,255,0.2) 0%,transparent 0%),
+  radial-gradient(1px 1px at 85% 45%,rgba(255,255,255,0.3) 0%,transparent 0%),
+  radial-gradient(1px 1px at 10% 80%,rgba(255,255,255,0.2) 0%,transparent 0%),
+  radial-gradient(1px 1px at 55% 90%,rgba(255,255,255,0.25) 0%,transparent 0%),
+  radial-gradient(1px 1px at 92% 70%,rgba(255,255,255,0.2) 0%,transparent 0%);
+  pointer-events:none;z-index:0}
+
+/* HEADER */
+#app-header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,6,20,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header-title{text-align:center;flex:1;user-select:none}
+.header-title h1{font-size:15px;font-weight:700;color:var(--gold);letter-spacing:0.15em;line-height:1.2}
+.header-title p{font-size:11px;color:var(--muted);letter-spacing:0.08em;font-style:italic}
+#member-badge{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:0.08em;white-space:nowrap}
+#auth-btn{background:none;border:1px solid var(--border);color:var(--silver);font-family:var(--font);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:all 0.2s}
+#auth-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ADMIN */
+#admin-panel{position:fixed;top:56px;left:0;right:0;z-index:99;background:rgba(50,10,80,0.96);border-bottom:1px solid rgba(201,168,76,0.3);padding:8px 16px;display:none;align-items:center;gap:10px;font-size:12px;letter-spacing:0.05em}
+#admin-panel.visible{display:flex}
+#admin-panel span{color:var(--gold);font-weight:700}
+.admin-btn{background:none;border:1px solid var(--gold);color:var(--gold);font-family:var(--font);font-size:11px;padding:3px 10px;border-radius:20px;cursor:pointer;transition:all 0.2s;font-weight:600}
+.admin-btn.active{background:var(--gold);color:var(--bg)}
+
+/* NOTIFICATION */
+#hour-notification{position:fixed;top:-140px;left:50%;transform:translateX(-50%);z-index:200;width:min(380px,92vw);background:linear-gradient(135deg,rgba(13,10,30,0.98),rgba(25,15,60,0.98));border:1px solid rgba(201,168,76,0.4);border-radius:16px;padding:16px 20px;box-shadow:0 8px 40px rgba(0,0,0,0.6);text-align:center;transition:top 0.5s cubic-bezier(0.34,1.56,0.64,1)}
+#hour-notification.show{top:72px}
+#hour-notification.admin-show{top:106px}
+.notif-planet{font-size:24px;margin-bottom:4px}
+.notif-title{font-size:14px;font-weight:700;color:var(--gold);letter-spacing:0.1em;margin-bottom:4px}
+.notif-body{font-size:15px;color:var(--silver);font-style:italic;line-height:1.4}
+.notif-close{position:absolute;top:8px;right:12px;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer}
+.notif-upgrade{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:0.08em;margin-top:8px;cursor:pointer}
+
+/* MAIN */
+#main{padding-top:calc(var(--nav-h) + 10px);padding-bottom:90px;min-height:100vh;position:relative;z-index:1}
+#main.admin-offset{padding-top:calc(var(--nav-h) + 44px)}
+.tab-content{display:none;padding:20px 16px;max-width:500px;margin:0 auto;animation:fadeUp 0.3s ease both}
+.tab-content.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0.25}
+.card-label{font-size:10px;font-weight:700;letter-spacing:0.22em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.card-title{font-size:19px;font-weight:700;color:var(--gold2);margin-bottom:6px}
+.card-body{font-size:17px;color:var(--silver);line-height:1.75}
+
+/* INFO BLOCK — like the old sunrise/sunset blocks */
+.info-block{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.info-block-label{font-size:9px;font-weight:700;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.info-block-value{font-size:17px;font-weight:600;color:var(--text);line-height:1.5}
+.info-block-sub{font-size:14px;color:var(--muted);font-style:italic;margin-top:3px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+
+/* PLANET CARD */
+.planet-card{background:radial-gradient(ellipse at center top,var(--planet-glow,var(--glow)),transparent 70%),var(--surface);border-color:var(--planet-color,var(--border));text-align:center;padding:28px 20px}
+.planet-symbol-big{font-size:54px;line-height:1;margin-bottom:8px;color:var(--planet-color,var(--gold));font-weight:700;filter:drop-shadow(0 0 14px var(--planet-color,var(--gold)))}
+.planet-name-big{font-size:22px;font-weight:700;color:var(--planet-color,var(--gold2));letter-spacing:0.08em}
+.planet-subtitle{font-size:14px;color:var(--muted);letter-spacing:0.05em;margin-top:5px;font-style:italic}
+
+/* HOUR GRID */
+.section-header{font-size:10px;font-weight:700;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;padding:0 2px}
+.hour-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.hour-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:all 0.2s;position:relative}
+.hour-item.current{border-color:var(--gold);background:rgba(201,168,76,0.07)}
+.hour-item.current::after{content:'●';position:absolute;top:6px;right:8px;color:var(--gold);font-size:8px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hour-num{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:0.1em}
+.hour-name{font-size:13px;font-weight:700;margin:2px 0}
+.hour-time{font-size:13px;color:var(--muted)}
+
+/* NIGHT LOCKED BANNER */
+.night-locked-banner{background:rgba(8,6,20,0.7);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:22px;text-align:center;margin-bottom:14px}
+.nlb-icon{font-size:28px;margin-bottom:8px}
+.nlb-title{font-size:15px;font-weight:700;color:var(--gold);letter-spacing:0.1em;margin-bottom:6px}
+.nlb-body{font-size:15px;color:var(--muted);font-style:italic;line-height:1.5;margin-bottom:8px}
+.nlb-time{font-size:13px;color:var(--silver);font-weight:600;letter-spacing:0.06em}
+
+/* LOCKS */
+.lock-wrap{position:relative;margin-bottom:14px}
+.lock-wrap .locked-card{filter:blur(3px);pointer-events:none;user-select:none}
+.lock-overlay{position:absolute;inset:0;background:rgba(8,6,20,0.65);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.lock-icon{font-size:26px}
+.lock-label{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.1em;text-align:center}
+.upgrade-btn{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--bg);border:none;font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:0.1em;padding:8px 20px;border-radius:20px;cursor:pointer;transition:opacity 0.2s}
+.upgrade-btn:hover{opacity:0.85}
+
+/* PSALM / SACRED NAME */
+.psalm-block{border-left:2px solid var(--gold);padding-left:16px;margin:10px 0}
+.psalm-ref{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:0.15em;margin-bottom:4px}
+.psalm-text{font-style:italic;font-size:16px;color:var(--text);line-height:1.75}
+.sacred-name{margin-top:8px;font-size:13px;color:var(--silver)}
+.sacred-name strong{color:var(--gold);font-weight:700;letter-spacing:0.1em}
+.sacred-name-explain{font-size:13px;color:var(--muted);font-style:italic;margin-top:3px}
+
+/* RITUAL */
+.ritual-list{list-style:none;counter-reset:ritual}
+.ritual-list li{counter-increment:ritual;display:flex;gap:12px;margin-bottom:12px;font-size:16px;color:var(--silver);line-height:1.65}
+.ritual-list li::before{content:counter(ritual);font-size:10px;font-weight:700;color:var(--gold);background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:50%;width:22px;height:22px;min-width:22px;display:flex;align-items:center;justify-content:center;margin-top:3px}
+
+/* INCANTATION */
+.incantation{background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:18px;text-align:center;font-style:italic;font-size:17px;color:var(--gold2);line-height:1.85;position:relative}
+.incantation::before{content:'\275D';position:absolute;top:-8px;left:12px;color:var(--gold);font-size:24px;line-height:1}
+
+/* ANGEL / ORISHA BLOCKS */
+.spirit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.spirit-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.spirit-block .s-icon{font-size:26px;margin-bottom:6px}
+.spirit-block .s-label{font-size:9px;font-weight:700;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.spirit-block .s-name{font-size:16px;font-weight:700;color:var(--gold2)}
+.spirit-block .s-desc{font-size:13px;color:var(--muted);font-style:italic;margin-top:3px}
+.work-btn{width:100%;margin-top:8px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);color:var(--gold);font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:0.1em;padding:7px;border-radius:8px;cursor:pointer;transition:all 0.2s}
+.work-btn:hover{background:rgba(201,168,76,0.15)}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:0.18em}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* MOON */
+.moon-display{font-size:64px;text-align:center;line-height:1;margin-bottom:8px;filter:drop-shadow(0 0 18px rgba(192,207,224,0.45))}
+.moon-sign-badge{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:4px}
+.moon-sign-symbol{font-size:30px;background:rgba(138,100,210,0.15);border-radius:8px;padding:8px;min-width:48px;text-align:center}
+.sign-name{font-size:18px;font-weight:700;color:var(--gold2)}
+.sign-element{font-size:14px;color:var(--silver);font-style:italic}
+.sign-shift{font-size:13px;color:var(--muted);margin-top:2px}
+
+/* JOURNAL */
+.reflection-card{background:rgba(138,100,210,0.08);border:1px solid rgba(138,100,210,0.2);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.ref-meta{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.12em;margin-bottom:8px}
+.ref-question{font-size:19px;font-style:italic;color:var(--text);line-height:1.65;margin-bottom:6px}
+.ref-sub{font-size:14px;color:var(--muted);font-style:italic}
+.journal-write-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.journal-write-label{font-size:10px;font-weight:700;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.journal-textarea{width:100%;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--font);font-size:17px;line-height:1.7;padding:14px;resize:vertical;min-height:140px;outline:none;transition:border-color 0.2s}
+.journal-textarea:focus{border-color:rgba(201,168,76,0.4)}
+.journal-textarea::placeholder{color:var(--muted);font-style:italic}
+.journal-footer{display:flex;gap:10px;align-items:center;margin-top:10px}
+.mood-select{flex:1;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:var(--silver);font-family:var(--font);font-size:14px;padding:10px 12px;outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6880'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.mood-select option{background:#13102a}
+.seal-btn{background:linear-gradient(135deg,#4a3080,#6b48b8);color:#e8e4f0;border:none;font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:0.12em;padding:10px 20px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.journal-entry{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:10px}
+.journal-entry-date{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.1em;margin-bottom:6px}
+.journal-entry-text{font-size:15px;color:var(--silver);line-height:1.65}
+.journal-entry-mood{font-size:12px;color:var(--muted);margin-top:4px;font-style:italic}
+
+/* BIRTH CHART */
+.birth-chart-form input{width:100%;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:15px;padding:10px 12px;margin-bottom:10px;outline:none;transition:border-color 0.2s}
+.birth-chart-form input:focus{border-color:rgba(201,168,76,0.4)}
+.birth-chart-form input::placeholder{color:var(--muted)}
+.chart-btn{width:100%;background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05));border:1px solid rgba(201,168,76,0.4);color:var(--gold);font-family:var(--font);font-size:13px;font-weight:700;letter-spacing:0.12em;padding:12px;border-radius:10px;cursor:pointer;transition:all 0.2s;margin-top:4px}
+.chart-btn:hover{background:rgba(201,168,76,0.2)}
+.placement-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.placement-block{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+.placement-planet{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px}
+.placement-sign{font-size:16px;font-weight:700;color:var(--gold2)}
+.placement-meaning{font-size:12px;color:var(--muted);font-style:italic;margin-top:3px;line-height:1.4}
+
+/* PATTERN TRACKING */
+.pattern-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.pattern-planet-icon{font-size:20px;width:32px;text-align:center}
+.pattern-label{flex:1}
+.pattern-planet-name{font-size:14px;font-weight:700;color:var(--text)}
+.pattern-mood{font-size:13px;color:var(--muted);font-style:italic}
+.pattern-bar-wrap{width:60px}
+.pattern-bar{height:6px;border-radius:3px;background:rgba(201,168,76,0.15)}
+.pattern-bar-fill{height:100%;border-radius:3px;background:var(--gold);transition:width 0.5s}
+
+/* NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(8,6,20,0.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{background:none;border:none;color:#7a7490;font-family:var(--font);font-size:10px;font-weight:700;letter-spacing:0.1em;padding:12px 4px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:color 0.2s;text-transform:uppercase}
+.nav-btn .nav-icon{font-size:20px;line-height:1;font-weight:700}
+.nav-btn.active{color:var(--gold)}
+.nav-btn.active .nav-icon{filter:drop-shadow(0 0 6px currentColor)}
+</style>
+</head>
+<body>
+
+<header id="app-header">
+  <button id="auth-btn" onclick="handleAuth()">Sign In</button>
+  <div class="header-title">
+    <h1>Viriditas Hora</h1>
+    <p id="header-sub">The Living Power of the Hour</p>
+  </div>
+  <div id="member-badge">Free</div>
+</header>
+
+<div id="admin-panel">
+  <span>&#10022; Preview:</span>
+  <button class="admin-btn" onclick="setAdminTier('free')" id="abtn-free">Free</button>
+  <button class="admin-btn" onclick="setAdminTier('seeker')" id="abtn-seeker">Seeker</button>
+  <button class="admin-btn" onclick="setAdminTier('initiate')" id="abtn-initiate">Initiate</button>
+</div>
+
+<div id="hour-notification">
+  <button class="notif-close" onclick="closeNotif()">&#10005;</button>
+  <div class="notif-planet" id="notif-planet">&#9728;</div>
+  <div class="notif-title" id="notif-title">Sun Hour has begun &#10024;</div>
+  <div class="notif-body">Check the app for your affirmation, action &amp; ritual.</div>
+  <div class="notif-upgrade" id="notif-upgrade" style="display:none" onclick="showUpgrade()">Upgrade to keep receiving hour alerts &#8594;</div>
+</div>
+
+<main id="main">
+
+<!-- ══ HORA TAB ══════════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-hora">
+
+  <div class="card planet-card" id="hora-planet-card">
+    <div class="planet-symbol-big" id="hora-symbol">&#9728;</div>
+    <div class="planet-name-big" id="hora-planet-name">Sun Hour</div>
+    <div class="planet-subtitle" id="hora-time-range">&#8212;</div>
+  </div>
+
+  <!-- Info blocks: sunrise/sunset style -->
+  <div class="info-grid" id="hora-info-grid">
+    <div class="info-block">
+      <div class="info-block-label">&#9728; Sunrise</div>
+      <div class="info-block-value" id="hora-sunrise">&#8212;</div>
+    </div>
+    <div class="info-block">
+      <div class="info-block-label">&#9790; Sunset</div>
+      <div class="info-block-value" id="hora-sunset">&#8212;</div>
+    </div>
+  </div>
+
+  <!-- FREE: affirmation + action -->
+  <div class="card">
+    <div class="card-label">Affirmation of the Hour</div>
+    <div class="card-body" id="hora-affirmation" style="font-style:italic;color:var(--gold2);font-size:17px">Loading&#8230;</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Simple Action</div>
+    <div class="card-body" id="hora-action">Loading&#8230;</div>
+  </div>
+
+  <!-- SEEKER: psalm + simple ritual -->
+  <div id="hora-seeker-section" style="display:none">
+    <div class="divider">&#10022; Seeker &#10022;</div>
+    <div class="card">
+      <div class="card-label">Psalm of the Hour</div>
+      <div class="psalm-block">
+        <div class="psalm-ref" id="hora-psalm-ref">&#8212;</div>
+        <div class="psalm-text" id="hora-psalm-text">&#8212;</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Simple Ritual</div>
+      <ul class="ritual-list" id="hora-simple-ritual"></ul>
+    </div>
+  </div>
+
+  <!-- INITIATE: sacred name + angel + orisha at top, then detailed ritual + incantation -->
+  <div id="hora-initiate-section" style="display:none">
+    <div class="divider">&#10022; Initiate &#10022;</div>
+
+    <div class="card">
+      <div class="card-label">Sacred Name of God</div>
+      <div class="psalm-block">
+        <div class="psalm-ref" id="hora-sacred-ref">&#8212;</div>
+        <div class="sacred-name"><strong id="hora-sacred-name">&#8212;</strong></div>
+        <div class="sacred-name-explain" id="hora-sacred-explain">&#8212;</div>
+      </div>
+    </div>
+
+    <div class="spirit-grid">
+      <div class="spirit-block">
+        <div class="s-icon">&#128124;</div>
+        <div class="s-label">Ruling Angel</div>
+        <div class="s-name" id="hora-angel-name">&#8212;</div>
+        <div class="s-desc" id="hora-angel-desc">&#8212;</div>
+        <button class="work-btn" onclick="showWorkModal('angel')">Work with this Angel &#8594;</button>
+      </div>
+      <div class="spirit-block">
+        <div class="s-icon">&#127807;</div>
+        <div class="s-label">Ruling Orisha</div>
+        <div class="s-name" id="hora-orisha-name">&#8212;</div>
+        <div class="s-desc" id="hora-orisha-desc">&#8212;</div>
+        <button class="work-btn" onclick="showWorkModal('orisha')">Work with this Orisha &#8594;</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Detailed Ritual</div>
+      <ul class="ritual-list" id="hora-detail-ritual"></ul>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Incantation</div>
+      <div class="incantation" id="hora-incantation">&#8212;</div>
+    </div>
+  </div>
+
+  <!-- LOCKED SEEKER (free users) -->
+  <div id="hora-seeker-locked" style="display:none">
+    <div class="divider">&#10022; Seeker Access &#10022;</div>
+    <div class="lock-wrap">
+      <div class="card locked-card">
+        <div class="card-label">Psalm of the Hour</div>
+        <div class="psalm-block">
+          <div class="psalm-ref">Psalm 91</div>
+          <div class="psalm-text">He that dwelleth in the secret place of the most High shall abide under the shadow of the Almighty&#8230;</div>
+        </div>
+      </div>
+      <div class="lock-overlay">
+        <div class="lock-icon">&#128274;</div>
+        <div class="lock-label">Seeker &amp; Above</div>
+        <button class="upgrade-btn" onclick="showUpgrade()">Upgrade to Seeker</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOUR GRIDS -->
+  <div class="section-header" style="margin-top:6px" id="grid-day-label">Day Hours</div>
+  <div class="hour-grid" id="hora-day-grid"></div>
+
+  <div id="hora-night-paid" style="display:none">
+    <div class="section-header" style="margin-top:6px">Night Hours</div>
+    <div class="hour-grid" id="hora-night-grid"></div>
+  </div>
+  <div id="hora-night-free" style="display:none">
+    <div class="night-locked-banner">
+      <div class="nlb-icon">&#127769;</div>
+      <div class="nlb-title">Day Hours Complete</div>
+      <div class="nlb-body">The sun has set. Upgrade to Seeker to work through the night hours.</div>
+      <div class="nlb-time" id="nlb-sunrise-time">Sunrise begins at &#8212;</div><br>
+      <button class="upgrade-btn" onclick="showUpgrade()" style="margin-top:4px">Upgrade to Seeker</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ RULING TAB ════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-ruling">
+
+  <div class="card planet-card" id="ruling-planet-card">
+    <div class="card-label">Ruling Planet of the Day</div>
+    <div class="planet-symbol-big" id="ruling-symbol">&#9728;</div>
+    <div class="planet-name-big" id="ruling-planet-name">Sunday &#8212; Sun</div>
+    <div class="planet-subtitle" id="ruling-day-desc">Vitality &#183; Purpose &#183; Authority</div>
+  </div>
+
+  <!-- Info blocks -->
+  <div class="info-grid">
+    <div class="info-block">
+      <div class="info-block-label">&#127807; Herb of the Day</div>
+      <div class="info-block-value" id="ruling-herb">&#8212;</div>
+    </div>
+    <div class="info-block">
+      <div class="info-block-label">&#128142; Crystal</div>
+      <div class="info-block-value" id="ruling-crystal">&#8212;</div>
+    </div>
+  </div>
+
+  <!-- FREE: herb, crystal, psalm -->
+  <div class="card">
+    <div class="card-label">Psalm of the Day</div>
+    <div class="psalm-block">
+      <div class="psalm-ref" id="ruling-psalm-ref">&#8212;</div>
+      <div class="psalm-text" id="ruling-psalm-text">&#8212;</div>
+    </div>
+  </div>
+
+  <!-- SEEKER: affirmation, incantation, ritual -->
+  <div id="ruling-seeker-section" style="display:none">
+    <div class="divider">&#10022; Seeker &#10022;</div>
+    <div class="card">
+      <div class="card-label">Daily Affirmation</div>
+      <div class="card-body" id="ruling-affirmation" style="font-style:italic;color:var(--gold2);font-size:17px">&#8212;</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Declaration of the Day</div>
+      <div class="incantation" id="ruling-incantation">&#8212;</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Daily Ritual</div>
+      <ul class="ritual-list" id="ruling-ritual"></ul>
+    </div>
+  </div>
+
+  <!-- INITIATE: sacred name + angel/orisha options -->
+  <div id="ruling-initiate-section" style="display:none">
+    <div class="divider">&#10022; Initiate &#10022;</div>
+    <div class="card">
+      <div class="card-label">Sacred Name of God</div>
+      <div class="psalm-block">
+        <div class="sacred-name"><strong id="ruling-sacred-name">&#8212;</strong></div>
+        <div class="sacred-name-explain" id="ruling-sacred-explain">&#8212;</div>
+      </div>
+    </div>
+    <div class="spirit-grid">
+      <div class="spirit-block">
+        <div class="s-icon">&#128124;</div>
+        <div class="s-label">Angel of the Day</div>
+        <div class="s-name" id="ruling-angel-name">&#8212;</div>
+        <div class="s-desc" id="ruling-angel-desc">&#8212;</div>
+        <button class="work-btn" onclick="showWorkModal('angel')">Work with this Angel &#8594;</button>
+      </div>
+      <div class="spirit-block">
+        <div class="s-icon">&#127807;</div>
+        <div class="s-label">Orisha of the Day</div>
+        <div class="s-name" id="ruling-orisha-name">&#8212;</div>
+        <div class="s-desc" id="ruling-orisha-desc">&#8212;</div>
+        <button class="work-btn" onclick="showWorkModal('orisha')">Work with this Orisha &#8594;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOCKED (free) -->
+  <div id="ruling-seeker-locked" style="display:none">
+    <div class="divider">&#10022; Seeker Access &#10022;</div>
+    <div class="lock-wrap">
+      <div class="card locked-card">
+        <div class="card-label">Daily Affirmation</div>
+        <div class="card-body" style="font-style:italic">I am aligned with the divine energy of this day&#8230;</div>
+      </div>
+      <div class="lock-overlay">
+        <div class="lock-icon">&#128274;</div>
+        <div class="lock-label">Seeker &amp; Above</div>
+        <button class="upgrade-btn" onclick="showUpgrade()">Upgrade to Seeker</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ MOON TAB ══════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-moon">
+
+  <div class="card" style="text-align:center;padding:28px 20px">
+    <div class="card-label">Today's Lunar Phase</div>
+    <div class="moon-display" id="moon-emoji">&#127765;</div>
+    <div class="card-title" id="moon-phase-name">Waxing Gibbous</div>
+    <div style="font-size:15px;color:var(--silver);margin-top:2px" id="moon-illumination">&#8212; illuminated</div>
+    <div style="font-size:15px;color:var(--muted);font-style:italic;margin-top:4px" id="moon-energy-short">&#8212;</div>
+  </div>
+
+  <!-- Moon sign (all tiers) -->
+  <div class="card">
+    <div class="card-label">Moon Currently In</div>
+    <div class="moon-sign-badge">
+      <div class="moon-sign-symbol" id="moon-sign-symbol">&#9807;</div>
+      <div class="moon-sign-info">
+        <div class="sign-name" id="moon-sign-name">Scorpio</div>
+        <div class="sign-element" id="moon-sign-element">Water Sign</div>
+        <div class="sign-shift" id="moon-sign-shift">Shifts every 2&#8211;3 days. Your emotional energy moves with it.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guidance (all tiers) -->
+  <div class="card">
+    <div class="card-label">Moon Guidance</div>
+    <div class="card-title" id="moon-guidance-title">&#8212;</div>
+    <div class="card-body" id="moon-action-today" style="font-size:16px">&#8212;</div>
+  </div>
+
+  <!-- Seeker+ -->
+  <div id="moon-seeker-section" style="display:none">
+    <div class="divider">&#10022; Seeker &amp; Initiate &#10022;</div>
+    <div class="info-grid">
+      <div class="info-block">
+        <div class="info-block-label">&#127807; Herbs &amp; Oils</div>
+        <div class="info-block-value" id="moon-herbs" style="font-size:15px">&#8212;</div>
+      </div>
+      <div class="info-block">
+        <div class="info-block-label">&#128142; Crystal</div>
+        <div class="info-block-value" id="moon-crystal" style="font-size:15px">&#8212;</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Psalm for the Moon</div>
+      <div class="psalm-block">
+        <div class="psalm-ref" id="moon-psalm-ref">&#8212;</div>
+        <div class="psalm-text" id="moon-psalm-text">&#8212;</div>
+        <div class="sacred-name" id="moon-sacred-name">Sacred Name: <strong>&#8212;</strong></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Moon Ritual</div>
+      <ul class="ritual-list" id="moon-ritual"></ul>
+    </div>
+  </div>
+
+  <!-- Locked -->
+  <div id="moon-locked-section" style="display:none">
+    <div class="lock-wrap">
+      <div class="card locked-card">
+        <div class="card-label">Herbs &amp; Oils for This Phase</div>
+        <div class="card-body">Mugwort, White Sage, Frankincense, Jasmine Oil, Rose&#8230;</div>
+      </div>
+      <div class="lock-overlay">
+        <div class="lock-icon">&#128274;</div>
+        <div class="lock-label">Seeker &amp; Above</div>
+        <button class="upgrade-btn" onclick="showUpgrade()">Upgrade to Seeker</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ JOURNAL TAB ═══════════════════════════════════════════ -->
+<div class="tab-content" id="tab-journal">
+
+  <div id="journal-open-section" style="display:none">
+    <div class="reflection-card">
+      <div class="ref-meta" id="journal-meta">&#127765; Full Moon &#183; Venus Day</div>
+      <div class="ref-question" id="journal-prompt">"How are you doing at loving yourself right now?"</div>
+      <div class="ref-sub">Take your time. There is no wrong answer.</div>
+    </div>
+
+    <div class="journal-write-card">
+      <div class="journal-write-label">Write Here</div>
+      <textarea class="journal-textarea" id="journal-input" placeholder="Write freely. This space belongs to you&#8230;"></textarea>
+      <div class="journal-footer">
+        <select class="mood-select" id="journal-mood">
+          <option value="">How do you feel?</option>
+          <option value="Grounded">&#127807; Grounded</option>
+          <option value="Hopeful">&#10024; Hopeful</option>
+          <option value="Heavy">&#127783; Heavy</option>
+          <option value="Clear">&#128142; Clear</option>
+          <option value="Unsettled">&#127754; Unsettled</option>
+          <option value="Grateful">&#128591; Grateful</option>
+          <option value="Determined">&#128293; Determined</option>
+          <option value="Peaceful">&#9729;&#65039; Peaceful</option>
+        </select>
+        <button class="seal-btn" onclick="saveJournal()">Seal Entry</button>
+      </div>
+    </div>
+
+    <div id="journal-trial-notice" style="display:none;text-align:center;margin-bottom:14px">
+      <span style="font-size:13px;color:var(--muted);font-style:italic">Journal access: <span id="journal-days-left" style="color:var(--gold);font-weight:700">&#8212; days</span> remaining in your free trial</span>
+    </div>
+
+    <div id="journal-entries"></div>
+
+    <!-- INITIATE: birth chart + pattern tracking + report -->
+    <div id="journal-initiate-section" style="display:none">
+      <div class="divider">&#10022; Initiate Features &#10022;</div>
+
+      <!-- Birth Chart -->
+      <div class="card">
+        <div class="card-label">Birth Chart</div>
+        <div id="birth-chart-display">
+          <p style="font-size:15px;color:var(--muted);font-style:italic;margin-bottom:14px">Enter your birth details to see how the planets were aligned when you arrived.</p>
+          <div class="birth-chart-form">
+            <input type="date" id="birth-date" placeholder="Birth Date">
+            <input type="time" id="birth-time" placeholder="Birth Time (approximate)">
+            <input type="text" id="birth-city" placeholder="Birth City (e.g. Houston, TX)">
+            <button class="chart-btn" onclick="generateBirthChart()">&#9733; Generate My Chart</button>
+          </div>
+          <div id="birth-chart-result" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- Emotional Pattern Tracking -->
+      <div class="card">
+        <div class="card-label">Your Energy Patterns</div>
+        <p style="font-size:15px;color:var(--muted);font-style:italic;margin-bottom:12px" id="pattern-intro">Based on your journal entries, here is how each planetary hour affects your energy.</p>
+        <div id="pattern-display"></div>
+      </div>
+
+      <!-- Monthly Energy Report -->
+      <div class="card">
+        <div class="card-label">Monthly Energy Report</div>
+        <div id="monthly-report">
+          <p style="font-size:15px;color:var(--muted);font-style:italic">Your report builds as you journal. Keep writing and the patterns will reveal themselves.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOCKED journal -->
+  <div id="journal-locked-section" style="display:none">
+    <div class="lock-wrap">
+      <div class="card locked-card" style="filter:blur(3px)">
+        <div class="card-label">Write Here</div>
+        <textarea class="journal-textarea" style="pointer-events:none" placeholder="Write freely&#8230;"></textarea>
+      </div>
+      <div class="lock-overlay">
+        <div class="lock-icon">&#128274;</div>
+        <div class="lock-label">Your 7-day trial has ended</div>
+        <button class="upgrade-btn" onclick="showUpgrade()">Upgrade to Seeker</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<nav id="nav">
+  <button class="nav-btn active" onclick="switchTab('hora',this)"><span class="nav-icon">&#8635;</span>Hora</button>
+  <button class="nav-btn" onclick="switchTab('ruling',this)"><span class="nav-icon">&#9728;</span>Ruling</button>
+  <button class="nav-btn" onclick="switchTab('moon',this)"><span class="nav-icon">&#9790;</span>Moon</button>
+  <button class="nav-btn" onclick="switchTab('journal',this)"><span class="nav-icon">&#10022;</span>Journal</button>
+</nav>
+
+<script>
+
+// ══════════════════════════════════════════════
+// VIRIDITAS HORA v5.0
+// ══════════════════════════════════════════════
+
+const PLANETS = {
+  Sun:     { symbol:'\u2600', color:'var(--sun-color)',     glow:'rgba(244,196,48,0.12)' },
+  Moon:    { symbol:'\u263D', color:'var(--moon-color)',    glow:'rgba(192,207,224,0.12)' },
+  Mars:    { symbol:'\u2642', color:'var(--mars-color)',    glow:'rgba(224,85,85,0.12)' },
+  Mercury: { symbol:'\u263F', color:'var(--mercury-color)', glow:'rgba(78,203,141,0.10)' },
+  Jupiter: { symbol:'\u2643', color:'var(--jupiter-color)', glow:'rgba(160,108,213,0.12)' },
+  Venus:   { symbol:'\u2640', color:'var(--venus-color)',   glow:'rgba(233,117,176,0.10)' },
+  Saturn:  { symbol:'\u2644', color:'var(--saturn-color)',  glow:'rgba(30,58,110,0.18)' }
+};
+const CHALDEAN   = ['Saturn','Jupiter','Mars','Sun','Venus','Mercury','Moon'];
+const DAY_RULERS = ['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn'];
+
+// ── HORA DATA ─────────────────────────────────
+const HORA_DATA = {
+  Sun: {
+    affirmation: "I shine with divine authority. My purpose is clear and my light cannot be extinguished.",
+    action: "Step into natural light for a moment. Hold your head high and breathe deeply.",
+    psalm: { ref:"Psalm 19", text:"The heavens declare the glory of God; and the firmament sheweth his handywork." },
+    simpleRitual: ["Light a gold or yellow candle.", "Speak your main intention for this hour aloud.", "Close your eyes and breathe deeply three times, feeling the sun's energy fill you."],
+    sacredRef: "Psalm 19:1", sacredName: "YHVH", sacredExplain: "The Self-Existent One — the eternal I AM. Invoke this name for clarity, purpose, and divine authority.",
+    angel: "Michael", angelDesc: "Archangel of the Sun. Protector, warrior, and bringer of divine light.",
+    orisha: "Obatala / Oshun", orishaDesc: "Obatala brings purity and wisdom; Oshun brings sweetness and divine love.",
+    detailRitual: [
+      "Prepare your space: light a gold candle and place a glass of fresh water beside it.",
+      "Read Psalm 19 aloud slowly, letting each word land.",
+      "Call on Michael: 'Michael, warrior of light, stand with me this hour. Let no darkness prevail.'",
+      "Write your highest intention for the day on paper and fold it toward you three times.",
+      "Hold the paper to your heart and seal it with the declaration below.",
+      "Leave the candle burning safely as you work."
+    ],
+    incantation: "I declare: The light of the Most High illuminates my path this hour. Every shadow flees. Every door opens. My purpose is sealed in divine fire. As above, so below. So it is."
+  },
+  Moon: {
+    affirmation: "I flow with divine rhythm. My intuition is a sacred gift and I trust what I feel.",
+    action: "Drink a glass of water with intention. Bless it and let it carry your prayers into your body.",
+    psalm: { ref:"Psalm 23", text:"The Lord is my shepherd; I shall not want. He maketh me to lie down in green pastures." },
+    simpleRitual: ["Pour a glass of clean water.", "Hold it in both hands and speak a prayer or desire over it.", "Drink it slowly as an act of receiving."],
+    sacredRef: "Psalm 23:1", sacredName: "YHVH Ro'i", sacredExplain: "The Lord My Shepherd — the divine guide who leads you beside still waters. Invoke for peace, direction, and emotional healing.",
+    angel: "Gabriel", angelDesc: "Archangel of the Moon. Messenger, guardian of dreams and intuition.",
+    orisha: "Yemoja", orishaDesc: "Mother of waters. She governs emotions, dreams, and the deep feminine wisdom.",
+    detailRitual: [
+      "Place a bowl or glass of water on your altar or windowsill.",
+      "Light a white or silver candle beside it.",
+      "Read Psalm 23 slowly and feel each verse as a promise.",
+      "Call on Gabriel: 'Gabriel, speak to me clearly this hour. Let my intuition be sharp and my heart be still.'",
+      "Write what you wish to release or receive on paper and place it beneath the water vessel.",
+      "Sit in silence for 3 minutes. Listen for what arises."
+    ],
+    incantation: "I declare: The waters of the Most High flow through me with peace and discernment. My dreams carry truth. My feelings are sacred data. I receive divine guidance now. So it is."
+  },
+  Mars: {
+    affirmation: "I move with divine courage. Every obstacle becomes fuel for my advancement.",
+    action: "Do 10 pushups or a brief walk. Mars requires action, not words alone.",
+    psalm: { ref:"Psalm 35", text:"Plead my cause, O Lord, with them that strive with me: fight against them that fight against me." },
+    simpleRitual: ["Clap your hands three times to break stagnation.", "Declare aloud: 'I move forward now. Nothing holds me back.'", "Take one bold action you have been avoiding."],
+    sacredRef: "Psalm 35:1", sacredName: "Adonai Tzvaot", sacredExplain: "Lord of Hosts — Commander of the heavenly armies. Invoke for spiritual warfare, protection, and victory over obstacles.",
+    angel: "Chamuel", angelDesc: "Angel of courage and strength. He dissolves fear and empowers decisive action.",
+    orisha: "Ogun / Shango", orishaDesc: "Ogun clears the path with iron will; Shango commands with thunder and justice.",
+    detailRitual: [
+      "Light a red candle.",
+      "Write on paper the name of the obstacle, enemy, or fear you are confronting.",
+      "Read Psalm 35 aloud with authority, not as a request but as a declaration.",
+      "Call on Chamuel: 'Chamuel, fill me with courage this hour. Let fear dissolve and let me move with precision.'",
+      "Burn or firmly fold and bury the paper.",
+      "Speak the incantation below with your fist on your chest."
+    ],
+    incantation: "I declare: The warrior spirit of the Most High goes before me. No weapon formed against me shall prosper. I advance. I conquer. I prevail. The battle belongs to God and the victory belongs to me. So it is."
+  },
+  Mercury: {
+    affirmation: "I speak with divine wisdom. My words open doors and my mind moves with precision.",
+    action: "Write three sentences about your vision by hand. Mercury responds to the written word.",
+    psalm: { ref:"Psalm 119:105", text:"Thy word is a lamp unto my feet, and a light unto my path." },
+    simpleRitual: ["Write your key intention or message for this hour by hand.", "Read it aloud once.", "Anoint your wrist or throat with peppermint oil if available."],
+    sacredRef: "Psalm 119:130", sacredName: "Ehyeh Asher Ehyeh", sacredExplain: "I AM That I AM — the name of pure divine presence and intelligence. Invoke for clarity, discernment, and the right words.",
+    angel: "Raphael", angelDesc: "Archangel of Mercury. Healer of the mind, guide of travelers and communicators.",
+    orisha: "Eshu / Elegba", orishaDesc: "Master of crossroads and communication. He opens and closes doors between worlds.",
+    detailRitual: [
+      "Light a yellow or orange candle.",
+      "Place any contracts, documents, or devices you are using today beside it.",
+      "Read Psalm 119:130 over them: 'Let your word give light and understanding.'",
+      "Call on Raphael: 'Raphael, guide my mind and tongue this hour. Let every word I speak carry divine weight and open the right doors.'",
+      "Write the key message, email, or intention you need to communicate and read it aloud.",
+      "Seal with the incantation below before sending or speaking."
+    ],
+    incantation: "I declare: The spirit of wisdom rests upon my tongue. Every word I speak this hour is anointed. The right message reaches the right person at the right time. All doors of communication are blessed and open. So it is."
+  },
+  Jupiter: {
+    affirmation: "I receive with divine abundance. Blessings multiply in my life as I align with higher law.",
+    action: "Write down 5 things you are grateful for. Jupiter expands what you acknowledge.",
+    psalm: { ref:"Psalm 65:11", text:"Thou crownest the year with thy goodness; and thy paths drop fatness." },
+    simpleRitual: ["Write 5 things you are grateful for.", "Read them aloud and say 'More of this' after each one.", "Light a blue or purple candle and let it burn as you work."],
+    sacredRef: "Psalm 65:9", sacredName: "El Elyon", sacredExplain: "God Most High — the supreme sovereign above all. Invoke for expansion, abundance, divine law, and overflow.",
+    angel: "Tzadkiel", angelDesc: "Angel of mercy and abundance. He opens the treasury of divine blessing.",
+    orisha: "Orula / Obatala", orishaDesc: "Orula governs wisdom and destiny; Obatala brings divine order and clarity.",
+    detailRitual: [
+      "Light a blue or purple candle.",
+      "Write 5 specific blessings you are calling in — be precise.",
+      "Read Psalm 65 aloud, emphasizing the language of harvest and overflow.",
+      "Call on Tzadkiel: 'Tzadkiel, open the divine treasury this hour. Let abundance flow to me in every dimension of my life.'",
+      "Give something — even something small — money, time, a kind word — to activate the law of circulation.",
+      "Seal with the incantation below."
+    ],
+    incantation: "I declare: The blessings of El Elyon overtake me this hour. I cannot outrun them. My cup overflows. Every seed I have sown in faith comes back to me multiplied. The harvest is now. So it is."
+  },
+  Venus: {
+    affirmation: "I am worthy of deep love. Beauty, harmony, and connection flow to me effortlessly.",
+    action: "Do something beautiful for yourself or another. A kind word. A gesture. A moment of beauty.",
+    psalm: { ref:"Psalm 45:1", text:"My heart is inditing a good matter: I speak of the things which I have made touching the king." },
+    simpleRitual: ["Anoint your wrists or heart with rose water or rose oil.", "Light a pink candle.", "Look in the mirror and say one thing you love about yourself."],
+    sacredRef: "Psalm 45:2", sacredName: "El Shaddai", sacredExplain: "God Almighty — the nourisher and sustainer. The name associated with divine beauty, blessing, and covenant love.",
+    angel: "Haniel", angelDesc: "Angel of love, beauty, and divine grace. She opens the heart and draws harmonious connections.",
+    orisha: "Oshun", orishaDesc: "Goddess of love, rivers, and sweetness. She governs joy, abundance, and sacred feminine power.",
+    detailRitual: [
+      "Prepare a small offering of honey, orange, or something sweet — Oshun's sacred gifts.",
+      "Light a pink or gold candle.",
+      "Anoint your heart center with rose oil.",
+      "Read Psalm 45 aloud as a love prayer.",
+      "Call on Haniel: 'Haniel, open my heart this hour. Let me give and receive love without walls.'",
+      "Write the name of the relationship or love you are calling in and fold it toward you.",
+      "Speak the incantation below with your hands on your heart."
+    ],
+    incantation: "I declare: I am worthy of divine love. Beauty flows through me and around me. Every relationship in my life is graced. I attract what is aligned with my highest good. Love is the law in my life. So it is."
+  },
+  Saturn: {
+    affirmation: "I build with divine discipline. Every foundation I lay is blessed and permanent.",
+    action: "Organize one small thing — a drawer, a list, a task. Saturn rewards order with breakthrough.",
+    psalm: { ref:"Psalm 51:10", text:"Create in me a clean heart, O God; and renew a right spirit within me." },
+    simpleRitual: ["Write down one thing you are releasing — a habit, a fear, a pattern.", "Say aloud: 'I release this. It no longer has power over me.'", "Light a dark blue or black candle."],
+    sacredRef: "Psalm 51:10", sacredName: "El Gibbor", sacredExplain: "Mighty God — the divine strength who breaks chains and builds unshakeable foundations. Invoke for discipline, release, and lasting transformation.",
+    angel: "Cassiel", angelDesc: "Angel of Saturn. Guardian of time, solitude, and deep spiritual work.",
+    orisha: "Babalu Aye / Ogun", orishaDesc: "Babalu Aye governs healing through suffering; Ogun clears the path with iron discipline.",
+    detailRitual: [
+      "Light a black or dark blue candle.",
+      "Sit in silence for 2 minutes before beginning — Saturn demands stillness.",
+      "Write everything you are releasing: patterns, relationships, addictions, false beliefs.",
+      "Read Psalm 51 slowly and deliberately as a cleansing prayer.",
+      "Call on Cassiel: 'Cassiel, help me release what no longer serves. Let time work in my favor and let every foundation I build stand forever.'",
+      "Burn or bury the release paper.",
+      "Clean or organize one physical space immediately after as a physical act of spiritual clearing."
+    ],
+    incantation: "I declare: The God of order works in me and through me. Every chain is broken. Every false foundation is cleared. What I build in righteousness will stand. I embrace the sacred discipline that is forming me. So it is."
+  }
+};
+
+// ── RULING DATA ───────────────────────────────
+const RULING_DATA = {
+  Sun: {
+    keywords:"Vitality \u00B7 Purpose \u00B7 Authority",
+    herb:"Frankincense, Chamomile, Bay Leaf", crystal:"Citrine, Sunstone, Clear Quartz",
+    psalm:{ ref:"Psalm 19", text:"The heavens declare the glory of God; the skies proclaim the work of his hands. Day after day they pour forth speech." },
+    affirmation:"Today I walk in divine authority. The light of the Most High shines through me, illuminating every path and clearing every shadow.",
+    incantation:"I declare: The Sun of righteousness rises over my life today with healing in its wings. Every door opens. Every blessing flows. So it is written \u2014 so it is done.",
+    ritual:["Light a gold or yellow candle at sunrise or midday.","Hold your hands open, palms up, and speak your top intention for the day.","Read Psalm 19 aloud and declare your purpose.","Carry a citrine or sunstone throughout the day."],
+    sacredName:"YHVH", sacredExplain:"The Self-Existent One \u2014 the eternal I AM. The root name of God from which all others flow.",
+    angel:"Michael", angelDesc:"Commander of the heavenly host. Protector and bringer of divine clarity.",
+    orisha:"Obatala", orishaDesc:"King of the white cloth. He governs purity, wisdom, and divine authority."
+  },
+  Moon: {
+    keywords:"Intuition \u00B7 Memory \u00B7 Dreams",
+    herb:"Mugwort, Jasmine, White Willow Bark", crystal:"Moonstone, Selenite, Pearl",
+    psalm:{ ref:"Psalm 23", text:"The Lord is my shepherd; I shall not want. He makes me lie down in green pastures. He leads me beside still waters. He restores my soul." },
+    affirmation:"Today I trust the tides within me. My intuition is a sacred compass and my dreams carry divine messages.",
+    incantation:"I declare: The waters of the Most High flow through me with peace. I hear clearly. I move wisely. What was hidden is revealed. So it is.",
+    ritual:["Place a bowl of water on your altar or windowsill.","Write down a dream or feeling you have been carrying.","Pray Psalm 23 over the water.","Drink the water with the declaration: 'My soul is restored.'"],
+    sacredName:"YHVH Ro'i", sacredExplain:"The Lord My Shepherd \u2014 the divine guide who restores the soul and leads through still waters.",
+    angel:"Gabriel", angelDesc:"Divine messenger and guardian of the inner world, dreams, and sacred feminine energy.",
+    orisha:"Yemoja", orishaDesc:"Mother of all waters. She holds the emotional body and the wisdom of the deep."
+  },
+  Mars: {
+    keywords:"Courage \u00B7 Action \u00B7 Strength",
+    herb:"Dragon's Blood, Ginger, Nettle", crystal:"Red Jasper, Bloodstone, Carnelian",
+    psalm:{ ref:"Psalm 35", text:"Plead my cause, O Lord, with them that strive with me: fight against them that fight against me. Take hold of shield and buckler, and stand up for mine help." },
+    affirmation:"Today I move without fear. Every battle I face has already been won in the spirit. I am anointed with divine courage.",
+    incantation:"I declare: The warrior spirit of the Most High goes before me today. No weapon formed against me shall prosper. I advance. I conquer. I prevail. So it is.",
+    ritual:["Clap your hands three times on waking to break stagnation.","Write the name of what you are fighting against on paper.","Pray Psalm 35 over it and speak: 'It is broken.'","Burn or bury the paper."],
+    sacredName:"Adonai Tzvaot", sacredExplain:"Lord of Hosts \u2014 Commander of the heavenly armies. The name of divine power in spiritual warfare.",
+    angel:"Chamuel", angelDesc:"Angel of strength and courage. He dissolves fear and empowers decisive movement.",
+    orisha:"Ogun", orishaDesc:"Warrior Orisha of iron and the path. He clears all obstacles with precision and force."
+  },
+  Mercury: {
+    keywords:"Communication \u00B7 Clarity \u00B7 Commerce",
+    herb:"Peppermint, Lavender, Lemon Verbena", crystal:"Blue Lace Agate, Clear Quartz, Fluorite",
+    psalm:{ ref:"Psalm 119:130", text:"The unfolding of your words gives light; it gives understanding to the simple." },
+    affirmation:"Today every word I speak carries divine weight. My mind is sharp, my message is clear, and every conversation is guided by divine wisdom.",
+    incantation:"I declare: The spirit of wisdom rests upon my tongue today. The right words come at the right moment. All communications are blessed. Every agreement is sealed in truth.",
+    ritual:["Anoint your throat or wrists with peppermint oil.","Read something sacred aloud before speaking to anyone.","Before any important message, pause and pray Psalm 119:130.","Carry a blue lace agate for clear expression."],
+    sacredName:"Ehyeh Asher Ehyeh", sacredExplain:"I AM That I AM \u2014 the name of pure divine intelligence and presence. The ground of all understanding.",
+    angel:"Raphael", angelDesc:"Divine healer and guide of the mind and communication. He aligns thought with divine truth.",
+    orisha:"Eshu / Elegba", orishaDesc:"Master of crossroads and the keeper of all doors. Nothing passes without his blessing."
+  },
+  Jupiter: {
+    keywords:"Expansion \u00B7 Abundance \u00B7 Wisdom",
+    herb:"Sage, Hyssop, Nutmeg", crystal:"Amethyst, Lapis Lazuli, Sapphire",
+    psalm:{ ref:"Psalm 65:9-11", text:"You visit the earth and water it; you greatly enrich it. You provide their grain, for so you have prepared it. You crown the year with your bounty." },
+    affirmation:"Today I am a vessel for divine increase. Abundance is my inheritance. Wisdom multiplies in my hands.",
+    incantation:"I declare: The blessings of the Most High overtake me today. I cannot outrun them. My table is prepared, my cup overflows. The goodness of God follows me. So it is.",
+    ritual:["Light a blue or purple candle.","Write 5 financial or spiritual goals and read them aloud.","Pray Psalm 65 over your home, work, and finances.","Give something \u2014 even something small \u2014 to activate the blessing cycle."],
+    sacredName:"El Elyon", sacredExplain:"God Most High \u2014 the supreme sovereign of all realms. The name of divine jurisdiction and overflow.",
+    angel:"Tzadkiel", angelDesc:"Angel of mercy and divine abundance. He opens the treasury of heaven.",
+    orisha:"Orula", orishaDesc:"Keeper of the divine oracle. He speaks the language of destiny and divine timing."
+  },
+  Venus: {
+    keywords:"Love \u00B7 Beauty \u00B7 Harmony",
+    herb:"Rose, Hibiscus, Damiana", crystal:"Rose Quartz, Emerald, Malachite",
+    psalm:{ ref:"Psalm 45:1-2", text:"My heart overflows with a pleasing theme; I address my verses to the king. You are the most handsome of the sons of men; grace is poured upon your lips." },
+    affirmation:"Today I radiate the love of the divine. I attract beauty, I create harmony, and every relationship reflects the sacred covenant of love within me.",
+    incantation:"I declare: Love is the law in my life today. Every encounter is graced. Every creative work is anointed. Beauty flows from me because I am made in the image of the Most Beautiful. So it is.",
+    ritual:["Anoint yourself with rose water or rose oil.","Light a pink candle and speak words of love \u2014 to yourself first.","Pray Psalm 45 and ask for favor in love and creative work.","Do one beautiful thing for someone else before noon."],
+    sacredName:"El Shaddai", sacredExplain:"God Almighty, the Nourisher \u2014 the name of divine sustenance, covenant, and overflowing love.",
+    angel:"Haniel", angelDesc:"Angel of divine love and grace. She opens the heart and draws beauty into every dimension of life.",
+    orisha:"Oshun", orishaDesc:"Goddess of rivers, love, and sweetness. She governs joy, beauty, and the sacred feminine."
+  },
+  Saturn: {
+    keywords:"Discipline \u00B7 Structure \u00B7 Mastery",
+    herb:"Myrrh, Vetiver, Black Cohosh", crystal:"Obsidian, Onyx, Jet",
+    psalm:{ ref:"Psalm 51:10-12", text:"Create in me a clean heart, O God, and renew a right spirit within me. Cast me not away from your presence. Restore to me the joy of your salvation." },
+    affirmation:"Today I build with divine precision. My foundations cannot be shaken. Every act of discipline is an act of faith.",
+    incantation:"I declare: The God of order works in me and through me today. What I build in righteousness will stand. Every chain is broken. Every false foundation is cleared. I build on the rock.",
+    ritual:["Begin by writing down what you are releasing \u2014 old habits, false beliefs, stagnant patterns.","Light a black or dark blue candle.","Pray Psalm 51 slowly and deliberately.","Clean or organize one physical space as an act of spiritual clearing."],
+    sacredName:"El Gibbor", sacredExplain:"Mighty God \u2014 the divine strength who breaks chains and establishes what is eternal. The name of unshakeable foundation.",
+    angel:"Cassiel", angelDesc:"Angel of Saturn and time. He guards the threshold of deep spiritual transformation.",
+    orisha:"Babalu Aye", orishaDesc:"Orisha of healing through trial. He transforms suffering into sacred wisdom and strength."
+  }
+};
+
+// ── MOON DATA ─────────────────────────────────
+// Corrected anchor: New Moon May 16, 2026 at 16:01 UTC
+const MOON_NEW_ANCHOR = new Date('2026-05-16T16:01:00Z').getTime();
+const LUNAR_CYCLE    = 29.53058867 * 24 * 60 * 60 * 1000;
+
+// Moon sign anchor: Moon entered Scorpio May 27 ~00:00 UTC
+// Each sign ~2.3 days = 198720000 ms
+const MOON_SIGN_ANCHOR = new Date('2026-05-27T00:00:00Z').getTime();
+const SIGN_DURATION    = 2.3 * 24 * 60 * 60 * 1000;
+const MOON_SIGNS = [
+  { name:'Scorpio',     symbol:'\u264F', element:'Water Sign', shift:'Dive beneath the surface. Intensity and transformation are near.' },
+  { name:'Sagittarius', symbol:'\u2650', element:'Fire Sign',  shift:'Expand your vision. Seek truth, meaning, and freedom.' },
+  { name:'Capricorn',   symbol:'\u2651', element:'Earth Sign', shift:'Discipline and ambition are your allies today.' },
+  { name:'Aquarius',    symbol:'\u2652', element:'Air Sign',   shift:'Think differently. Community and innovation are favored.' },
+  { name:'Pisces',      symbol:'\u2653', element:'Water Sign', shift:'Dream deeply. Intuition and compassion are heightened.' },
+  { name:'Aries',       symbol:'\u2648', element:'Fire Sign',  shift:'Bold, impulsive energy. Act first, reflect later.' },
+  { name:'Taurus',      symbol:'\u2649', element:'Earth Sign', shift:'Slow down. Nourish yourself. Build something lasting.' },
+  { name:'Gemini',      symbol:'\u264A', element:'Air Sign',   shift:'Your mind is sharp. Communicate and connect.' },
+  { name:'Cancer',      symbol:'\u264B', element:'Water Sign', shift:'Emotions run deep today. Honor what you feel.' },
+  { name:'Leo',         symbol:'\u264C', element:'Fire Sign',  shift:'Step into the light. Create. Be seen.' },
+  { name:'Virgo',       symbol:'\u264D', element:'Earth Sign', shift:'Organize and refine. Small details matter now.' },
+  { name:'Libra',       symbol:'\u264E', element:'Air Sign',   shift:'Seek balance and harmony. Relationships are highlighted.' }
+];
+
+function getMoonSign() {
+  const elapsed = Date.now() - MOON_SIGN_ANCHOR;
+  const idx = Math.floor(elapsed / SIGN_DURATION) % 12;
+  return MOON_SIGNS[Math.max(0, idx)];
+}
+
+function getMoonPhase() {
+  const elapsed = (Date.now() - MOON_NEW_ANCHOR) % LUNAR_CYCLE;
+  const pct = elapsed / LUNAR_CYCLE;
+  const illum = Math.round(Math.abs(Math.cos(pct * 2 * Math.PI)) * 50 + (pct < 0.5 ? pct * 100 : (1-pct) * 100));
+  let name, emoji, short, guidance, action, herbs, crystal, psalmRef, psalmText, sacredName, ritual;
+  if      (pct < 0.0625) { name="New Moon";        emoji="\uD83C\uDF11"; short="New beginnings. Plant your seeds in the dark."; guidance="Set Intentions"; action="Write 3 intentions and seal them with prayer."; herbs="Bay leaf, frankincense, myrrh"; crystal="Black tourmaline, obsidian"; psalmRef="Psalm 8"; psalmText="O Lord, our Lord, how majestic is your name in all the earth!"; sacredName="Elohim \u2014 Creator God"; ritual=["Sit in silence for 3 minutes.","Write 3 intentions and seal them in an envelope.","Pray Psalm 8 and ask for divine direction.","Leave the envelope on your altar until the Full Moon."] }
+  else if (pct < 0.1875) { name="Waxing Crescent"; emoji="\uD83C\uDF12"; short="Growth is building. Take your first action."; guidance="Take Action"; action="Speak your intention aloud. Take one concrete step today."; herbs="Peppermint, citrus, ginger"; crystal="Citrine, green aventurine"; psalmRef="Psalm 1:3"; psalmText="He is like a tree planted by streams of water that yields its fruit in its season."; sacredName="El Elyon \u2014 God Most High"; ritual=["Light a green candle for growth.","Speak your intentions aloud.","Pray Psalm 1 over your plans.","Take one concrete action toward a goal today."] }
+  else if (pct < 0.3125) { name="First Quarter";   emoji="\uD83C\uDF13"; short="Stand firm. The resistance is a test."; guidance="Stand Firm"; action="Do the thing you have been avoiding. Courage is available now."; herbs="Dragon's blood, nettle, black pepper"; crystal="Red jasper, bloodstone"; psalmRef="Psalm 46:1"; psalmText="God is our refuge and strength, a very present help in trouble. Therefore we will not fear."; sacredName="Adonai Tzvaot \u2014 Lord of Hosts"; ritual=["Write down the obstacle you are facing.","Pray Psalm 46 for divine strength.","Light a red candle and declare: 'I do not back down.'","Take the action you have been avoiding."] }
+  else if (pct < 0.4375) { name="Waxing Gibbous";  emoji="\uD83C\uDF14"; short="Almost there. Refine and trust."; guidance="Refine & Trust"; action="Review your New Moon intentions. Adjust your approach, not your vision."; herbs="Lavender, chamomile, sandalwood"; crystal="Amethyst, lapis lazuli"; psalmRef="Psalm 37:4"; psalmText="Delight yourself in the Lord, and he will give you the desires of your heart."; sacredName="YHVH \u2014 The Faithful One"; ritual=["Review your New Moon intentions.","Give thanks for every step forward.","Pray Psalm 37 over your desires.","Refine one area \u2014 what can you improve?"] }
+  else if (pct < 0.5625) { name="Full Moon";        emoji="\uD83C\uDF15"; short="Peak power. Release. Illuminate the hidden."; guidance="Release & Illuminate"; action="Write what you are releasing and burn or bury the paper tonight."; herbs="White sage, frankincense, jasmine, rose"; crystal="Selenite, moonstone, clear quartz"; psalmRef="Psalm 121:1-2"; psalmText="I lift up my eyes to the hills. From where does my help come? My help comes from the Lord, who made heaven and earth."; sacredName="YHVH Shammah \u2014 The Lord Is There"; ritual=["Place water under the moonlight overnight.","Write what you wish to release on paper and burn it.","Pray Psalm 121 aloud near a window.","Cleanse your space with sage or frankincense."] }
+  else if (pct < 0.6875) { name="Waning Gibbous";  emoji="\uD83C\uDF16"; short="Gratitude and sharing. The harvest is here."; guidance="Give & Share"; action="Share something valuable \u2014 knowledge, kindness, or service \u2014 before day's end."; herbs="Rosemary, hyssop, cedar"; crystal="Rose quartz, amber"; psalmRef="Psalm 107:1"; psalmText="Oh give thanks to the Lord, for he is good, for his steadfast love endures forever!"; sacredName="El Shaddai \u2014 God of Abundance"; ritual=["List 10 blessings from this lunar cycle.","Share something valuable with someone.","Pray Psalm 107 in thanksgiving.","Offer something to your community or those in need."] }
+  else if (pct < 0.8125) { name="Last Quarter";    emoji="\uD83C\uDF17"; short="Let go. What no longer aligns must be surrendered."; guidance="Release"; action="Write a letter to what you are releasing. Burn or bury it with Psalm 51."; herbs="Eucalyptus, black cohosh, vetiver"; crystal="Smoky quartz, obsidian"; psalmRef="Psalm 51:10"; psalmText="Create in me a clean heart, O God, and renew a right spirit within me."; sacredName="El Gibbor \u2014 Mighty God"; ritual=["Write a letter to what you are releasing.","Pray Psalm 51 as a cleansing prayer.","Light a black candle and sit in silence.","Bury or burn the letter."] }
+  else                   { name="Waning Crescent"; emoji="\uD83C\uDF18"; short="Rest and surrender. Trust the divine in your stillness."; guidance="Rest & Restore"; action="Allow yourself to rest. Journal: What is God showing me in the quiet?"; herbs="Valerian, mugwort, lavender, moonflower"; crystal="Lepidolite, moonstone"; psalmRef="Psalm 23:2"; psalmText="He makes me lie down in green pastures. He leads me beside still waters. He restores my soul."; sacredName="YHVH Ro'i \u2014 The Lord My Shepherd"; ritual=["Allow yourself to rest more than usual.","Pray Psalm 23 before sleep.","Journal: What is God showing me in the quiet?","Prepare intentions for the coming New Moon."] }
+  return { name, emoji, short, guidance, action, herbs, crystal, psalmRef, psalmText, sacredName, ritual, illum };
+}
+
+// ── STATE ──────────────────────────────────────
+let sunriseHour=6, sunsetHour=18, locationName='';
+let currentHourIdx=-1, userTier='free', adminMode=false, msLoaded=false;
+const KEY_NOTIF='vh_notif_expiry', KEY_JOURNAL_EXP='vh_journal_expiry', KEY_JOURNAL='vh_journal_entries', KEY_CHART='vh_birth_chart';
+const SEVEN_DAYS=7*24*60*60*1000;
+function getOrSetExpiry(k){let v=localStorage.getItem(k);if(!v){v=Date.now()+SEVEN_DAYS;localStorage.setItem(k,v)}return Number(v)}
+function withinTrial(k){return Date.now()<getOrSetExpiry(k)}
+function daysLeft(k){return Math.max(0,Math.ceil((getOrSetExpiry(k)-Date.now())/(24*60*60*1000)))}
+
+// ── ADMIN ──────────────────────────────────────
+function initAdminMode(){if(new URLSearchParams(window.location.search).get('preview')==='true'){adminMode=true;document.getElementById('admin-panel').classList.add('visible');document.getElementById('main').classList.add('admin-offset');setAdminTier('free')}}
+function setAdminTier(t){userTier=t;document.querySelectorAll('.admin-btn').forEach(b=>b.classList.remove('active'));document.getElementById('abtn-'+t).classList.add('active');updateMemberBadge();renderAll()}
+
+// ── MEMBERSTACK ────────────────────────────────
+function initMemberstack(){if(typeof window.$memberstackDom==='undefined'){setTimeout(initMemberstack,500);return}msLoaded=true;window.$memberstackDom.getCurrentMember().then(({data:m})=>{if(!m)return;const ids=(m.planConnections||[]).map(p=>(p.planId||'').toLowerCase());if(ids.some(id=>id.includes('initiate')))userTier='initiate';else if(ids.some(id=>id.includes('seeker')))userTier='seeker';else userTier='paid-free';if(!adminMode){updateMemberBadge();renderAll()}document.getElementById('auth-btn').textContent='Manage'}).catch(()=>{})}
+function handleAuth(){if(!msLoaded&&typeof window.$memberstackDom!=='undefined')msLoaded=true;if(!msLoaded){alert('Loading \u2014 please try again.');return}window.$memberstackDom.getCurrentMember().then(({data:m})=>{if(m){window.$memberstackDom.logout().then(()=>{userTier='free';document.getElementById('auth-btn').textContent='Sign In';updateMemberBadge();renderAll()})}else{window.$memberstackDom.openModal('LOGIN')}})}
+function showUpgrade(){if(msLoaded&&window.$memberstackDom)window.$memberstackDom.openModal('SIGNUP');else window.location.href='https://www.viriditashora.com/#upgrade'}
+function updateMemberBadge(){const l={free:'Free','paid-free':'Free',seeker:'\u2726 Seeker',initiate:'\u2726\u2726 Initiate'};document.getElementById('member-badge').textContent=l[userTier]||'Free'}
+function isPaid(){return userTier==='seeker'||userTier==='initiate'}
+function isInitiate(){return userTier==='initiate'}
+function isSeeker(){return userTier==='seeker'||userTier==='initiate'}
+
+// ── TABS ───────────────────────────────────────
+function switchTab(n,btn){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');btn.classList.add('active')}
+
+// ── PLANETARY HOURS ────────────────────────────
+function getPlanetaryHours(){const dayLen=sunsetHour-sunriseHour,nightLen=24-dayLen,startIdx=CHALDEAN.indexOf(DAY_RULERS[new Date().getDay()]),hours=[];for(let i=0;i<24;i++){const planet=CHALDEAN[(startIdx+i)%7],isDaytime=i<12,start=isDaytime?sunriseHour+i*(dayLen/12):sunsetHour+(i-12)*(nightLen/12),end=isDaytime?sunriseHour+(i+1)*(dayLen/12):sunsetHour+(i-11)*(nightLen/12);hours.push({num:i+1,planet,isDaytime,start,end})}return hours}
+function getCurrentHourIdx(hours){const h=new Date().getHours()+new Date().getMinutes()/60;return hours.findIndex(hr=>h>=hr.start&&h<hr.end)}
+function fmtTime(dec){let h=Math.floor(dec)%24,m=Math.round((dec-Math.floor(dec))*60);if(m===60){h=(h+1)%24;m=0}const ap=h>=12?'PM':'AM',hh=h%12||12;return `${hh}:${String(m).padStart(2,'0')} ${ap}`}
+function isNighttime(){const h=new Date().getHours()+new Date().getMinutes()/60;return h<sunriseHour||h>=sunsetHour}
+
+// ── NOTIFICATION ───────────────────────────────
+function canShowNotif(){if(isPaid())return true;return withinTrial(KEY_NOTIF)}
+function showHourNotification(planet){const pd=PLANETS[planet];document.getElementById('notif-planet').textContent=pd.symbol;document.getElementById('notif-title').textContent=`${planet} Hour has begun \u2728`;document.getElementById('notif-upgrade').style.display=isPaid()?'none':'block';const n=document.getElementById('hour-notification');n.classList.remove('show','admin-show');n.classList.add(adminMode?'admin-show':'show');setTimeout(closeNotif,6000)}
+function closeNotif(){const n=document.getElementById('hour-notification');n.classList.remove('show','admin-show')}
+
+// ── WORK MODAL ─────────────────────────────────
+function showWorkModal(type){alert(type==='angel'?'Angel work feature coming soon \u2014 you will receive guided prayer, invocation, and ritual steps for working with your planetary angel.':'Orisha work feature coming soon \u2014 you will receive offering guidance, invocation, and ritual steps for working with your Orisha.')}
+
+// ── HORA RENDER ────────────────────────────────
+function renderHora(){
+  const hours=getPlanetaryHours(),idx=getCurrentHourIdx(hours),cur=hours[idx>=0?idx:0],p=cur.planet,pd=PLANETS[p],hd=HORA_DATA[p],night=isNighttime(),paid=isPaid();
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const now=new Date();
+  document.getElementById('header-sub').textContent=`${days[now.getDay()]} \u00B7 ${now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
+  document.getElementById('hora-sunrise').textContent=fmtTime(sunriseHour);
+  document.getElementById('hora-sunset').textContent=fmtTime(sunsetHour);
+  const card=document.getElementById('hora-planet-card');
+  card.style.setProperty('--planet-color',pd.color);
+  card.style.setProperty('--planet-glow',pd.glow);
+  if(night&&!paid){
+    document.getElementById('hora-symbol').textContent='\uD83C\uDF19';
+    document.getElementById('hora-planet-name').textContent='Night Hours';
+    document.getElementById('hora-time-range').textContent='Day hours resume at sunrise';
+    document.getElementById('hora-affirmation').textContent='Rest. The day hours will return with the sunrise. Use this time to pray, reflect, and prepare.';
+    document.getElementById('hora-action').textContent='Journal your reflections or prepare your intentions for tomorrow\u2019s planetary hours.';
+  } else {
+    document.getElementById('hora-symbol').textContent=pd.symbol;
+    document.getElementById('hora-planet-name').style.color=`var(--${p.toLowerCase()}-color, var(--gold2))`;
+    document.getElementById('hora-planet-name').textContent=`${p} Hour`;
+    document.getElementById('hora-time-range').textContent=`Hour ${cur.num} \u00B7 ${fmtTime(cur.start)} \u2013 ${fmtTime(cur.end)} \u00B7 ${cur.isDaytime?'Day':'Night'}`;
+    document.getElementById('hora-affirmation').textContent=hd.affirmation;
+    document.getElementById('hora-action').textContent=hd.action;
+  }
+  // Seeker section
+  const seekerOn=isSeeker()&&(!night||paid);
+  document.getElementById('hora-seeker-section').style.display=seekerOn?'block':'none';
+  document.getElementById('hora-seeker-locked').style.display=(!seekerOn&&!night)?'block':'none';
+  if(seekerOn){
+    document.getElementById('hora-psalm-ref').textContent=hd.psalm.ref;
+    document.getElementById('hora-psalm-text').textContent=hd.psalm.text;
+    const ul=document.getElementById('hora-simple-ritual');
+    ul.innerHTML=hd.simpleRitual.map(s=>`<li>${s}</li>`).join('');
+  }
+  // Initiate section
+  const initiateOn=isInitiate()&&(!night||paid);
+  document.getElementById('hora-initiate-section').style.display=initiateOn?'block':'none';
+  if(initiateOn){
+    document.getElementById('hora-sacred-ref').textContent=hd.sacredRef;
+    document.getElementById('hora-sacred-name').textContent=hd.sacredName;
+    document.getElementById('hora-sacred-explain').textContent=hd.sacredExplain;
+    document.getElementById('hora-angel-name').textContent=hd.angel;
+    document.getElementById('hora-angel-desc').textContent=hd.angelDesc;
+    document.getElementById('hora-orisha-name').textContent=hd.orisha;
+    document.getElementById('hora-orisha-desc').textContent=hd.orishaDesc;
+    const ul=document.getElementById('hora-detail-ritual');
+    ul.innerHTML=hd.detailRitual.map(s=>`<li>${s}</li>`).join('');
+    document.getElementById('hora-incantation').textContent=hd.incantation;
+  }
+  renderHoraGrids(hours,idx,paid,night);
+  if(idx!==currentHourIdx){if(currentHourIdx!==-1&&canShowNotif()&&(!night||paid))showHourNotification(p);currentHourIdx=idx}
+}
+
+function renderHoraGrids(hours,currentIdx,paid,night){
+  const dayH=hours.filter(h=>h.isDaytime),nightH=hours.filter(h=>!h.isDaytime);
+  const dayGrid=document.getElementById('hora-day-grid');
+  dayGrid.innerHTML='';
+  dayH.forEach(hr=>{const pd=PLANETS[hr.planet],isCur=hours.indexOf(hr)===currentIdx,div=document.createElement('div');div.className='hour-item'+(isCur?' current':'');div.innerHTML=`<div class="hour-num">Hour ${hr.num}</div><div class="hour-name" style="color:${pd.color}">${pd.symbol} ${hr.planet}</div><div class="hour-time">${fmtTime(hr.start)}</div>`;dayGrid.appendChild(div)});
+  document.getElementById('hora-night-paid').style.display=paid?'block':'none';
+  document.getElementById('hora-night-free').style.display=(night&&!paid)?'block':'none';
+  if(paid){const ng=document.getElementById('hora-night-grid');ng.innerHTML='';nightH.forEach(hr=>{const pd=PLANETS[hr.planet],isCur=hours.indexOf(hr)===currentIdx,div=document.createElement('div');div.className='hour-item'+(isCur?' current':'');div.innerHTML=`<div class="hour-num">Hour ${hr.num} \u00B7 Night</div><div class="hour-name" style="color:${pd.color}">${pd.symbol} ${hr.planet}</div><div class="hour-time">${fmtTime(hr.start)}</div>`;ng.appendChild(div)})}
+  if(night&&!paid)document.getElementById('nlb-sunrise-time').textContent=`Sunrise begins at ${fmtTime(sunriseHour)} tomorrow`
+}
+
+// ── RULING RENDER ──────────────────────────────
+function renderRuling(){
+  const dow=new Date().getDay(),planet=DAY_RULERS[dow],pd=PLANETS[planet],rd=RULING_DATA[planet];
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const card=document.getElementById('ruling-planet-card');
+  card.style.setProperty('--planet-color',pd.color);
+  card.style.setProperty('--planet-glow',pd.glow);
+  document.getElementById('ruling-symbol').textContent=pd.symbol;
+  // Planet name in planet color
+  const nameEl=document.getElementById('ruling-planet-name');
+  nameEl.textContent=`${days[dow]} \u2014 ${planet}`;
+  nameEl.style.color=`var(--${planet.toLowerCase()}-color, var(--gold2))`;
+  document.getElementById('ruling-day-desc').textContent=rd.keywords;
+  document.getElementById('ruling-herb').textContent=rd.herb;
+  document.getElementById('ruling-crystal').textContent=rd.crystal;
+  document.getElementById('ruling-psalm-ref').textContent=rd.psalm.ref;
+  document.getElementById('ruling-psalm-text').textContent=rd.psalm.text;
+  const seekerOn=isSeeker();
+  document.getElementById('ruling-seeker-section').style.display=seekerOn?'block':'none';
+  document.getElementById('ruling-seeker-locked').style.display=seekerOn?'none':'block';
+  if(seekerOn){
+    document.getElementById('ruling-affirmation').textContent=rd.affirmation;
+    document.getElementById('ruling-incantation').textContent=rd.incantation;
+    document.getElementById('ruling-ritual').innerHTML=rd.ritual.map(s=>`<li>${s}</li>`).join('');
+  }
+  const initiateOn=isInitiate();
+  document.getElementById('ruling-initiate-section').style.display=initiateOn?'block':'none';
+  if(initiateOn){
+    document.getElementById('ruling-sacred-name').textContent=rd.sacredName;
+    document.getElementById('ruling-sacred-explain').textContent=rd.sacredExplain;
+    document.getElementById('ruling-angel-name').textContent=rd.angel;
+    document.getElementById('ruling-angel-desc').textContent=rd.angelDesc;
+    document.getElementById('ruling-orisha-name').textContent=rd.orisha;
+    document.getElementById('ruling-orisha-desc').textContent=rd.orishaDesc;
+  }
+}
+
+// ── MOON RENDER ────────────────────────────────
+function renderMoon(){
+  const moon=getMoonPhase(),sign=getMoonSign(),paid=isPaid();
+  document.getElementById('moon-emoji').textContent=moon.emoji;
+  document.getElementById('moon-phase-name').textContent=moon.name;
+  document.getElementById('moon-illumination').textContent=`${moon.illum}% illuminated`;
+  document.getElementById('moon-energy-short').textContent=moon.short;
+  document.getElementById('moon-sign-symbol').textContent=sign.symbol;
+  document.getElementById('moon-sign-name').textContent=sign.name;
+  document.getElementById('moon-sign-element').textContent=sign.element;
+  document.getElementById('moon-sign-shift').textContent='Shifts every 2\u20133 days. '+sign.shift;
+  document.getElementById('moon-guidance-title').textContent=moon.guidance;
+  document.getElementById('moon-action-today').textContent=moon.action;
+  document.getElementById('moon-seeker-section').style.display=paid?'block':'none';
+  document.getElementById('moon-locked-section').style.display=paid?'none':'block';
+  if(paid){
+    document.getElementById('moon-herbs').textContent=moon.herbs;
+    document.getElementById('moon-crystal').textContent=moon.crystal;
+    document.getElementById('moon-psalm-ref').textContent=moon.psalmRef;
+    document.getElementById('moon-psalm-text').textContent=moon.psalmText;
+    document.getElementById('moon-sacred-name').innerHTML=`Sacred Name: <strong>${moon.sacredName}</strong>`;
+    document.getElementById('moon-ritual').innerHTML=moon.ritual.map(s=>`<li>${s}</li>`).join('');
+  }
+}
+
+// ── JOURNAL RENDER ─────────────────────────────
+function renderJournal(){
+  const paid=isPaid(),trialOpen=withinTrial(KEY_JOURNAL_EXP),showJ=paid||trialOpen;
+  document.getElementById('journal-open-section').style.display=showJ?'block':'none';
+  document.getElementById('journal-locked-section').style.display=showJ?'none':'block';
+  document.getElementById('journal-initiate-section').style.display=isInitiate()?'block':'none';
+  const noticeEl=document.getElementById('journal-trial-notice');
+  if(showJ&&!paid){noticeEl.style.display='block';document.getElementById('journal-days-left').textContent=daysLeft(KEY_JOURNAL_EXP)+' days'}else noticeEl.style.display='none';
+  if(showJ){
+    const hours=getPlanetaryHours(),idx=getCurrentHourIdx(hours),planet=hours[idx>=0?idx:0].planet,moon=getMoonPhase();
+    const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],dow=new Date().getDay();
+    document.getElementById('journal-meta').textContent=`${moon.emoji} ${moon.name} \u00B7 ${days[dow]} (${DAY_RULERS[dow]} Day)`;
+    const prompts={Sun:'"What am I here to accomplish? What am I shining light on today?"',Moon:'"What am I feeling beneath the surface? What does my intuition whisper?"',Mars:'"What battle am I in? What requires my courage right now?"',Mercury:'"What do I need to communicate? What truth has been left unsaid?"',Jupiter:'"What abundance am I ready to receive? What am I grateful for?"',Venus:'"How are you doing at loving yourself right now?"',Saturn:'"What structure is God calling me to build? What must I release to move forward?"'};
+    document.getElementById('journal-prompt').textContent=prompts[planet]||'"What energy are you carrying into this hour?"';
+    loadJournalEntries();
+    if(isInitiate()){renderPatterns();renderMonthlyReport();loadBirthChart()}
+  }
+}
+
+function saveJournal(){
+  const input=document.getElementById('journal-input'),mood=document.getElementById('journal-mood'),text=input.value.trim();
+  if(!text)return;
+  const entries=JSON.parse(localStorage.getItem(KEY_JOURNAL)||'[]'),hours=getPlanetaryHours(),idx=getCurrentHourIdx(hours),planet=hours[idx>=0?idx:0].planet,moon=getMoonPhase(),now=new Date();
+  entries.unshift({date:now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),planet,moon:moon.name,mood:mood.value,text,ts:now.getTime()});
+  if(entries.length>100)entries.length=100;
+  localStorage.setItem(KEY_JOURNAL,JSON.stringify(entries));
+  input.value='';mood.value='';loadJournalEntries();renderPatterns();renderMonthlyReport();
+}
+
+function loadJournalEntries(){
+  const entries=JSON.parse(localStorage.getItem(KEY_JOURNAL)||'[]'),container=document.getElementById('journal-entries');
+  if(!entries.length){container.innerHTML='';return}
+  container.innerHTML=entries.slice(0,5).map(e=>`<div class="journal-entry"><div class="journal-entry-date">${PLANETS[e.planet]?.symbol||'\u2726'} ${e.planet} Hour \u00B7 ${e.moon||''} \u00B7 ${e.date}</div><div class="journal-entry-text">${e.text}</div>${e.mood?`<div class="journal-entry-mood">${e.mood}</div>`:''}</div>`).join('');
+}
+
+// ── PATTERN TRACKING ───────────────────────────
+function renderPatterns(){
+  const entries=JSON.parse(localStorage.getItem(KEY_JOURNAL)||'[]');
+  const el=document.getElementById('pattern-display');
+  if(!entries.length){el.innerHTML='<p style="font-size:14px;color:var(--muted);font-style:italic">Journal entries will appear here as patterns form. Keep writing.</p>';return}
+  const planetMoods={};
+  entries.forEach(e=>{if(!e.planet||!e.mood)return;if(!planetMoods[e.planet])planetMoods[e.planet]=[];planetMoods[e.planet].push(e.mood)});
+  const moodScores={Grounded:5,Clear:5,Hopeful:4,Grateful:4,Determined:4,Peaceful:4,Unsettled:2,Heavy:1};
+  const rows=Object.entries(planetMoods).map(([planet,moods])=>{
+    const avg=moods.reduce((s,m)=>s+(moodScores[m]||3),0)/moods.length;
+    const pct=Math.round((avg/5)*100);
+    const pd=PLANETS[planet]||{symbol:'\u2726',color:'var(--gold)'};
+    const topMood=moods.sort((a,b)=>moods.filter(m=>m===b).length-moods.filter(m=>m===a).length)[0]||'Mixed';
+    return `<div class="pattern-row"><div class="pattern-planet-icon" style="color:${pd.color}">${pd.symbol}</div><div class="pattern-label"><div class="pattern-planet-name">${planet} Hour</div><div class="pattern-mood">Most common: ${topMood} (${moods.length} entries)</div></div><div class="pattern-bar-wrap"><div class="pattern-bar"><div class="pattern-bar-fill" style="width:${pct}%;background:${pd.color}"></div></div></div></div>`;
+  });
+  el.innerHTML=rows.join('');
+  document.getElementById('pattern-intro').textContent=`Based on ${entries.length} journal ${entries.length===1?'entry':'entries'}, here is how each planetary hour affects your energy.`;
+}
+
+// ── MONTHLY REPORT ─────────────────────────────
+function renderMonthlyReport(){
+  const entries=JSON.parse(localStorage.getItem(KEY_JOURNAL)||'[]');
+  const el=document.getElementById('monthly-report');
+  const now=new Date(),month=now.getMonth(),year=now.getFullYear();
+  const monthEntries=entries.filter(e=>e.ts&&new Date(e.ts).getMonth()===month&&new Date(e.ts).getFullYear()===year);
+  if(monthEntries.length<3){el.innerHTML='<p style="font-size:14px;color:var(--muted);font-style:italic">Your monthly report builds after at least 3 journal entries this month. Keep writing.</p>';return}
+  const moodCounts={};monthEntries.forEach(e=>{if(e.mood)moodCounts[e.mood]=(moodCounts[e.mood]||0)+1});
+  const topMood=Object.entries(moodCounts).sort((a,b)=>b[1]-a[1])[0];
+  const planetCounts={};monthEntries.forEach(e=>{if(e.planet)planetCounts[e.planet]=(planetCounts[e.planet]||0)+1});
+  const topPlanet=Object.entries(planetCounts).sort((a,b)=>b[1]-a[1])[0];
+  const moonCounts={};monthEntries.forEach(e=>{if(e.moon)moonCounts[e.moon]=(moonCounts[e.moon]||0)+1});
+  const topMoon=Object.entries(moonCounts).sort((a,b)=>b[1]-a[1])[0];
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  el.innerHTML=`
+    <div style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--gold);letter-spacing:0.1em;margin-bottom:8px">${months[month]} ${year} \u2014 ${monthEntries.length} Entries</div>
+      <div class="info-block" style="margin-bottom:8px"><div class="info-block-label">Dominant Energy</div><div class="info-block-value">${topMood?topMood[0]:'Varied'}</div><div class="info-block-sub">You felt this most across your entries this month</div></div>
+      <div class="info-block" style="margin-bottom:8px"><div class="info-block-label">Most Active Planetary Hour</div><div class="info-block-value">${topPlanet?`${PLANETS[topPlanet[0]]?.symbol||''} ${topPlanet[0]}`:'Varied'}</div><div class="info-block-sub">You journaled most during this planetary energy</div></div>
+      <div class="info-block"><div class="info-block-label">Most Active Moon Phase</div><div class="info-block-value">${topMoon?topMoon[0]:'Varied'}</div><div class="info-block-sub">This lunar phase held the most of your reflections</div></div>
+    </div>
+    <div style="font-size:15px;color:var(--silver);font-style:italic;line-height:1.75">As you continue to log your energy, deeper patterns and personal insights will emerge here \u2014 showing you exactly how the planets and moon phases move through your life.</div>`;
+}
+
+// ── BIRTH CHART ────────────────────────────────
+function loadBirthChart(){
+  const saved=localStorage.getItem(KEY_CHART);
+  if(saved){const d=JSON.parse(saved);displayBirthChart(d);return}
+}
+
+function generateBirthChart(){
+  const dateVal=document.getElementById('birth-date').value;
+  const timeVal=document.getElementById('birth-time').value||'12:00';
+  const city=document.getElementById('birth-city').value.trim()||'Unknown';
+  if(!dateVal){alert('Please enter your birth date.');return}
+  const dt=new Date(dateVal+'T'+timeVal);
+  // Simplified natal positions based on birth date
+  const year=dt.getFullYear(),month=dt.getMonth()+1,day=dt.getDate();
+  // Sun sign (approximate)
+  const sunSign=getSunSign(month,day);
+  // Moon sign (approximate — based on day of year cycling through signs every ~2.5 days)
+  const doy=Math.floor((dt-new Date(year,0,0))/(24*60*60*1000));
+  const moonSignIdx=Math.floor(doy/2.5)%12;
+  const moonSign=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'][moonSignIdx];
+  // Rising (approximate based on birth hour)
+  const hour=dt.getHours();
+  const risingIdx=Math.floor(hour/2)%12;
+  const rising=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'][risingIdx];
+  const chartData={sunSign,moonSign,rising,birthDate:dateVal,birthTime:timeVal,birthCity:city};
+  localStorage.setItem(KEY_CHART,JSON.stringify(chartData));
+  displayBirthChart(chartData);
+}
+
+function getSunSign(m,d){
+  if((m===3&&d>=21)||(m===4&&d<=19))return'Aries';if((m===4&&d>=20)||(m===5&&d<=20))return'Taurus';if((m===5&&d>=21)||(m===6&&d<=20))return'Gemini';if((m===6&&d>=21)||(m===7&&d<=22))return'Cancer';if((m===7&&d>=23)||(m===8&&d<=22))return'Leo';if((m===8&&d>=23)||(m===9&&d<=22))return'Virgo';if((m===9&&d>=23)||(m===10&&d<=22))return'Libra';if((m===10&&d>=23)||(m===11&&d<=21))return'Scorpio';if((m===11&&d>=22)||(m===12&&d<=21))return'Sagittarius';if((m===12&&d>=22)||(m===1&&d<=19))return'Capricorn';if((m===1&&d>=20)||(m===2&&d<=18))return'Aquarius';return'Pisces';
+}
+
+const SIGN_MEANINGS={
+  Aries:"Bold, pioneering, action-first energy.",Taurus:"Grounded, patient, pleasure-seeking energy.",
+  Gemini:"Curious, adaptable, communicative energy.",Cancer:"Intuitive, nurturing, emotionally deep energy.",
+  Leo:"Creative, generous, magnetic leadership energy.",Virgo:"Precise, analytical, service-oriented energy.",
+  Libra:"Harmonious, beauty-seeking, relational energy.",Scorpio:"Intense, transformative, deeply spiritual energy.",
+  Sagittarius:"Expansive, truth-seeking, freedom-loving energy.",Capricorn:"Disciplined, ambitious, mastery-driven energy.",
+  Aquarius:"Innovative, community-minded, visionary energy.",Pisces:"Dreamy, compassionate, deeply intuitive energy."
+};
+
+function displayBirthChart(d){
+  const result=document.getElementById('birth-chart-result');
+  result.style.display='block';
+  document.querySelector('.birth-chart-form').style.display='none';
+  result.innerHTML=`
+    <div style="font-size:13px;color:var(--muted);font-style:italic;margin-bottom:12px">${d.birthCity} \u00B7 ${d.birthDate} ${d.birthTime?'at '+d.birthTime:''}</div>
+    <div class="placement-grid">
+      <div class="placement-block"><div class="placement-planet">\u2600 Sun Sign</div><div class="placement-sign">${d.sunSign}</div><div class="placement-meaning">${SIGN_MEANINGS[d.sunSign]||''}</div></div>
+      <div class="placement-block"><div class="placement-planet">\u263D Moon Sign</div><div class="placement-sign">${d.moonSign}</div><div class="placement-meaning">${SIGN_MEANINGS[d.moonSign]||''}</div></div>
+      <div class="placement-block"><div class="placement-planet">\u2191 Rising Sign</div><div class="placement-sign">${d.rising}</div><div class="placement-meaning">${SIGN_MEANINGS[d.rising]||''}</div></div>
+      <div class="placement-block"><div class="placement-planet">\u2665 Soul Purpose</div><div class="placement-sign">${d.sunSign} Path</div><div class="placement-meaning">Your soul came to express the gifts of ${d.sunSign} in this lifetime.</div></div>
+    </div>
+    <button class="chart-btn" onclick="resetBirthChart()" style="margin-top:12px">Update My Chart</button>`;
+}
+
+function resetBirthChart(){localStorage.removeItem(KEY_CHART);document.getElementById('birth-chart-result').style.display='none';document.querySelector('.birth-chart-form').style.display='block'}
+
+// ── SUN TIMES ──────────────────────────────────
+function loadSunTimes(){
+  if(!navigator.geolocation){renderAll();return}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const{latitude:lat,longitude:lon}=pos.coords;
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=auto&forecast_days=1`).then(r=>r.json()).then(data=>{
+      if(data.daily){const sr=new Date(data.daily.sunrise[0]),ss=new Date(data.daily.sunset[0]);sunriseHour=sr.getHours()+sr.getMinutes()/60;sunsetHour=ss.getHours()+ss.getMinutes()/60}
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`).then(r=>r.json()).then(geo=>{locationName=(geo.address&&(geo.address.city||geo.address.town||geo.address.county))||'';renderAll()}).catch(renderAll)
+    }).catch(renderAll)
+  },renderAll)
+}
+
+function renderAll(){renderHora();renderRuling();renderMoon();renderJournal()}
+initAdminMode();initMemberstack();loadSunTimes();
+setInterval(renderHora,30000);
+
+</script>
+</body>
+</html>
